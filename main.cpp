@@ -33,7 +33,7 @@ int main()
     T is currently in x space as a central approx derivative.
     It should also have have option to be in p basis, so diagonal. but be careful of fftfreq
 
-    Evolution (T(x/p)=P^2/2m,V(x)=potential), options to be:
+    Evolution (T(x/p)=exp(-i*dt*P^2/2m),V(x)=exp(-i*dt*potential), options to be:
     - Split step
         V(x)/2 * IFFT{ T(p) * FFT{ V(x)/2 * PSI(x)
     - Matrix multiplication with T in x basis
