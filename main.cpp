@@ -58,16 +58,11 @@ int main()
 
     // Printing the H/T/V matrices
     
-    plots(hs.x(),H0.V);
     for(int i=0;i<eig.cols();i++){
         Eigen::VectorXd vect = eig.col(i)(seq(0,Eigen::placeholders::last-1));
         auto energy = eig(Eigen::placeholders::last,i);
 
-        plt::plot(hs.x(),40*vect.array()+energy);
-        plt::text(xlim,energy,std::to_string(i));
     }
-    plt::savefig("output/test.pdf"); // show the figure instead of saving it
-    plt::show();
 
     std::cout<<(start-std::chrono::high_resolution_clock::now()).count()<<": Ran "<<dim<<"x"<<dim<<std::endl;
 

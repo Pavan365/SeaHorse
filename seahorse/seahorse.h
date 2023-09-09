@@ -17,28 +17,6 @@ template<typename T> auto exp(T v) {return v.array().exp();}
 template<typename T, typename T2> auto box(T v, T2 x, double min, double max) {return (min < x.array() && x.array() < max ).select(v,0);}
 
 
-#ifdef WITHOUT_NUMPY
-#include "matplotlib/matplotlibcpp.h"
-namespace plt = matplotlibcpp;
-void plots(const Eigen::VectorXd& x,const Eigen::VectorXd& y){
-    plt::figure();
-
-    plt::plot(x, y, "k", {{"label","V"}});
-
-    plt::xlabel("x (a.u.)");
-    plt::ylabel("Energy $(E_r)$");
-
-    plt::legend();
-
-    plt::grid();
-    // plt::savefig("output/test.png"); // show the figure instead of saving it
-
-    // plt::show();
-}
-#else
-void plots(const Eigen::VectorXd& x,const Eigen::VectorXd& y){}
-#endif
-
 class Stepper {
 
 };
