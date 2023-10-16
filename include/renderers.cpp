@@ -10,23 +10,30 @@
 #include <sstream>
 
 #define VEC_FROM_EIGEN(v) std::vector<double>(v.data(),v.data()+v.size())
+#define VEC_VEC_FROM_EIGEN(m) ([](Eigen::MatrixXd z){std::vector<std::vector<double>> m2; for(int i = 0; i<z.cols(); i++){m2.push_back(std::vector<double>(z.data()+i*z.rows(),z.data()+z.rows()*(i+1)));}; return m2; }(m))
 
 struct Renderer
 {
-    // Lets renderers subscribe themselves to be re-drawn when needed by their own draw() function
-    void subscribe(Renderer* r){subscribers.push_back(r);}
+    // Lets renderers subscribe themselves to this manager to re-draw them when needed
+    void subscribe(Renderer* r){subscribers.push_back(r);r->manager=this;}
     virtual void draw() {
         ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
         for(auto iter = subscribers.begin(); iter != subscribers.end(); ++iter) {
             (*iter)->draw();
         }
     }
+    Renderer* manager; // who controls our redrawing
     private:
-    std::vector<Renderer*> subscribers;
+    std::vector<Renderer*> subscribers; // whos redrawing we control
 };
 
 struct PerfStats : Renderer
 {
+    int fontSize = 12;
+    Font fontTtf = LoadFontEx("UbuntuMonoBold.ttf",fontSize,0,0);
+
+    bool off = false;
+
     int totalthreads, nthreads, rss, fps;
     double pcpu, rssGB;
     std::chrono::system_clock::time_point time;
@@ -83,43 +90,48 @@ struct PerfStats : Renderer
 
     void draw()
     {
+        if (off==true) return;
         Color color;
 
         // FIND TEXT SIZES
         const char resUnits[1024] = "FPS: \nTHR: \nCPU: \nRAM: ";
-        const Vector2 unitsSize = MeasureTextEx(fontTtf, resUnits, 20, TEXT_SPACING_VALUE);
+        const Vector2 unitsSize = MeasureTextEx(fontTtf, resUnits, fontSize, TEXT_SPACING_VALUE);
 
         auto resNums = TextFormat("%2i\n%i/%i\n%.1f %%\n%.2f GB", PerfStats::fps, PerfStats::nthreads, PerfStats::totalthreads, PerfStats::pcpu, PerfStats::rssGB);
-        const Vector2 numsSize = MeasureTextEx(fontTtf, resNums, 20, TEXT_SPACING_VALUE);
+        const Vector2 numsSize = MeasureTextEx(fontTtf, resNums, fontSize, TEXT_SPACING_VALUE);
 
         // Remove old stats
         DrawRectangleRec(bounds,WHITE);
 
-        bounds.width = numsSize.x + unitsSize.x + 20;
-        bounds.height = 20 + std::max(numsSize.y, unitsSize.y);
+        bounds.width = numsSize.x + unitsSize.x + fontSize;
+        bounds.height = fontSize + std::max(numsSize.y, unitsSize.y);
         BeginDrawing();
         BeginScissorMode(bounds.x,bounds.y,bounds.width,bounds.height);
 
-        DrawRectangleLinesEx(bounds,2,BLACK);
+        DrawRectangleLinesEx(bounds,1,BLACK);
         
         color = PerfStats::fps < 15 ? RED : PerfStats::fps < 30 ? ORANGE : LIME;
-        DrawTextEx(fontTtf, "FPS: ", Vector2{bounds.x+10, bounds.y+10}, 20, TEXT_SPACING_VALUE, BLACK);
-        DrawTextEx(fontTtf, TextFormat("%2i", PerfStats::fps), Vector2{bounds.x+10 + unitsSize.x, bounds.y+10}, 20, TEXT_SPACING_VALUE, color);
+        DrawTextEx(fontTtf, "FPS: ", Vector2{bounds.x+fontSize/2, bounds.y+fontSize/2}, fontSize, TEXT_SPACING_VALUE, BLACK);
+        DrawTextEx(fontTtf, TextFormat("%2i", PerfStats::fps), Vector2{bounds.x+fontSize/2 + unitsSize.x, bounds.y+fontSize/2}, fontSize, TEXT_SPACING_VALUE, color);
 
         color = PerfStats::nthreads > PerfStats::totalthreads ? RED : 2 * PerfStats::nthreads > PerfStats::totalthreads ? ORANGE : LIME;
-        DrawTextEx(fontTtf, "THR: ", Vector2{bounds.x+10, bounds.y+10 + numsSize.y / 4}, 20, TEXT_SPACING_VALUE, BLACK);
-        DrawTextEx(fontTtf, TextFormat("%i/%i", PerfStats::nthreads, PerfStats::totalthreads), Vector2{bounds.x+10 + unitsSize.x, bounds.y+10 + numsSize.y / 4}, 20, TEXT_SPACING_VALUE, color);
+        DrawTextEx(fontTtf, "THR: ", Vector2{bounds.x+fontSize/2, bounds.y+fontSize/2 + numsSize.y / 4}, fontSize, TEXT_SPACING_VALUE, BLACK);
+        DrawTextEx(fontTtf, TextFormat("%i/%i", PerfStats::nthreads, PerfStats::totalthreads), Vector2{bounds.x+fontSize/2 + unitsSize.x, bounds.y+fontSize/2 + numsSize.y / 4}, fontSize, TEXT_SPACING_VALUE, color);
 
         color = PerfStats::pcpu > 90 ? RED : PerfStats::pcpu > 50 ? ORANGE : LIME;
-        DrawTextEx(fontTtf, "CPU: ", Vector2{bounds.x+10, bounds.y+10 + 2 * numsSize.y / 4}, 20, TEXT_SPACING_VALUE, BLACK);
-        DrawTextEx(fontTtf, TextFormat("%.1f %%", PerfStats::pcpu), Vector2{bounds.x+10 + unitsSize.x, bounds.y+10 + 2 * numsSize.y / 4}, 20, TEXT_SPACING_VALUE, color);
+        DrawTextEx(fontTtf, "CPU: ", Vector2{bounds.x+fontSize/2, bounds.y+fontSize/2 + 2 * numsSize.y / 4}, fontSize, TEXT_SPACING_VALUE, BLACK);
+        DrawTextEx(fontTtf, TextFormat("%.1f %%", PerfStats::pcpu), Vector2{bounds.x+fontSize/2 + unitsSize.x, bounds.y+fontSize/2 + 2 * numsSize.y / 4}, fontSize, TEXT_SPACING_VALUE, color);
 
         color = PerfStats::rssGB > 10 ? RED : PerfStats::rssGB > 5 ? ORANGE : LIME;
-        DrawTextEx(fontTtf, "RAM: ", Vector2{bounds.x+10, bounds.y+10 + 3 * numsSize.y / 4}, 20, TEXT_SPACING_VALUE, BLACK);
-        DrawTextEx(fontTtf, TextFormat("%.2f GB", PerfStats::rssGB), Vector2{bounds.x+10 + unitsSize.x, bounds.y+10 + 3 * numsSize.y / 4}, 20, TEXT_SPACING_VALUE, color);
+        DrawTextEx(fontTtf, "RAM: ", Vector2{bounds.x+fontSize/2, bounds.y+fontSize/2 + 3 * numsSize.y / 4}, fontSize, TEXT_SPACING_VALUE, BLACK);
+        DrawTextEx(fontTtf, TextFormat("%.2f GB", PerfStats::rssGB), Vector2{bounds.x+fontSize/2 + unitsSize.x, bounds.y+fontSize/2 + 3 * numsSize.y / 4}, fontSize, TEXT_SPACING_VALUE, color);
         
         EndScissorMode();
         EndDrawing();
+    }
+    void toggle(){
+        off = !off;
+        manager->draw();
     }
 };
 
@@ -151,33 +163,12 @@ struct graphLine : graphData
     bool drawPoints = false;
     bool drawLine = true;
 
-    graphLine(bool swap) : graphData(swap==true ? RED : BLUE,swap==true ? "Test - sin" : "Test - cos") // Testing
-    {
-        for(double i=-100;i<=50;i+=.1)
-        {
-            xData.push_back(i);
-            yData.push_back(swap==true ? 7+sin(i) : cos(i)-0.1*i);
-        }
-        setLims();  
-    }
-
-    // Constructors
-    graphLine(std::vector<double> x, std::vector<double> y, std::string n, Color c) : graphData(c,n)
+    // Constructor
+    graphLine(std::vector<double> x, std::vector<double> y, std::string n, Color c) : graphData(c,n), xData(x), yData(y)
     {
         if(x.size() != y.size()){std::cerr<<"Non-matching sizes in graph data for "<<name<<std::endl;}
-        xData = VEC_FROM_EIGEN(x);
-        yData = VEC_FROM_EIGEN(y);
+        setLims();
     }
-    graphLine(Eigen::VectorXd x, Eigen::VectorXd y, std::string n, Color c) : graphData(c,n)
-    {
-        if(x.size() != y.size()){std::cerr<<"Non-matching sizes in graph data for "<<name<<std::endl;}
-        xData = VEC_FROM_EIGEN(x);
-        yData = VEC_FROM_EIGEN(y);
-    }
-    graphLine(std::vector<double> x, std::vector<double> y, std::string n) : graphLine(x, y, n, BLACK) {};
-    graphLine(Eigen::VectorXd x, Eigen::VectorXd y, std::string n) : graphLine(VEC_FROM_EIGEN(x), VEC_FROM_EIGEN(y), n, BLACK) {};
-    graphLine(std::vector<double> x, std::vector<double> y) : graphLine(x, y, "") {};
-    graphLine(Eigen::VectorXd x, Eigen::VectorXd y) : graphLine(VEC_FROM_EIGEN(x), VEC_FROM_EIGEN(y), "") {};
 
     public:
     void draw(Rectangle plot_extent, double plot_lims[4])
@@ -234,24 +225,11 @@ struct graphHeatmap : graphData
     std::vector<std::vector<double>> zData;
     Color color2;
 
-    graphHeatmap(bool swap) : graphData(swap==true ? RED : BLUE,swap==true ? "Test - sin" : "Test - cos") // Testing
+    // Constructor
+    graphHeatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z, std::string n, Color c, Color c2) : graphData(c,n),xData(x), yData(y), zData(z), color2(c2)
     {
-        xData = {0,1};
-        yData = {0,5};
-        zData = {};
-
-        zData.push_back(std::vector<double>{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20});
-        zData.push_back(std::vector<double>{-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18});
-        zData.push_back(std::vector<double>{-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16});
-
-        setLims();  
+        setLims();
     }
-
-    // Constructors
-    graphHeatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z, std::string n, Color c, Color c2) : graphData(c,n), xData(x), yData(y), zData(z), color2(c2){}
-    graphHeatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z, std::string name) : graphHeatmap(x, y, z, name, BLACK, WHITE) {};
-    graphHeatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z) : graphHeatmap(x, y, z, "") {};
-    graphHeatmap(std::vector<std::vector<double>> z) : graphHeatmap(std::vector<double>(0,1), std::vector<double>(0,1), z, "") {};
 
     public:
     void draw(Rectangle plot_extent, double plot_lims[4])
@@ -309,6 +287,7 @@ struct graph : Renderer
     std::string xLabel;
     std::string yLabel;
     int fontSize = 20;
+    Font fontTtf = LoadFontEx("UbuntuMonoBold.ttf",fontSize,0,0);
 
     Vector2 padding = {0,8};
     bool legend = false;
@@ -323,6 +302,7 @@ struct graph : Renderer
     }
     graph(Rectangle bounds): graph(bounds,"",""){}
 
+    // Internal functions
     private:
     void ReplaceStringInPlace(std::string& subject, const std::string& search, const std::string& replace)
     {
@@ -370,15 +350,55 @@ struct graph : Renderer
         return output;
     }
 
+    // Plotting functions
     public:
-    void addLine(bool swap) // Testing
+    void plot(std::vector<double> x, std::vector<double> y, std::string n, Color c)
     {
-        // lines.push_back(std::make_unique<graphLine>(swap));
-        lines.push_back(std::make_unique<graphLine>(swap));
-        draw();
+        lines.push_back(std::make_unique<graphLine>(x,y,n,c));
         setLims();
+        draw();
+    }
+    void plot(std::vector<double> x, std::vector<double> y) {plot(x,y, "", BLACK);}
+    void plot(Eigen::VectorXd x, Eigen::VectorXd y, std::string n, Color c) {plot(VEC_FROM_EIGEN(x),VEC_FROM_EIGEN(y),n,c);}
+    void plot(Eigen::VectorXd x, Eigen::VectorXd y) {plot(VEC_FROM_EIGEN(x), VEC_FROM_EIGEN(y));}
+    void plot(bool swap)// Testing
+    {
+        std::vector<double> x;
+        std::vector<double> y;
+        std::string n = swap==true ? "Test - sin" : "Test - cos";
+        Color c = swap==true ? RED : BLUE;
+
+        for(double i=-100;i<=50;i+=.1)
+        {
+            x.push_back(i);
+            y.push_back(swap==true ? 7+sin(i) : cos(i)-0.1*i);
+        }
+        plot(x,y,n,c);  
     }
 
+    void heatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z, std::string n, Color c, Color c2){
+        lines.push_back(std::make_unique<graphHeatmap>(x,y,z,n,c,c2));
+        setLims();
+        draw();
+    }
+    void heatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z) {heatmap(x, y, z, "", BLUE, PURPLE);}
+    void heatmap(std::vector<std::vector<double>> z) {heatmap(std::vector<double>(0,1), std::vector<double>(0,1), z);}
+    void heatmap(Eigen::VectorXd x, Eigen::VectorXd y, Eigen::MatrixXd z, std::string n, Color c, Color c2) {heatmap(VEC_FROM_EIGEN(x),VEC_FROM_EIGEN(y),VEC_VEC_FROM_EIGEN(z),n,c,c2);}
+    void heatmap(Eigen::VectorXd x, Eigen::VectorXd y, Eigen::MatrixXd z) {heatmap(VEC_FROM_EIGEN(x),VEC_FROM_EIGEN(y),VEC_VEC_FROM_EIGEN(z));}
+    void heatmap(Eigen::MatrixXd z) {heatmap(VEC_VEC_FROM_EIGEN(z));}
+    void heatmap()// Testing
+    {
+        std::vector<double> x = {0,1};
+        std::vector<double> y = {0,5};
+        std::vector<std::vector<double>> z = {};
+
+        z.push_back(std::vector<double>{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20});
+        z.push_back(std::vector<double>{-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18});
+        z.push_back(std::vector<double>{-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16});
+        heatmap(x,y,z);
+    }
+
+    // Util. functions
     void setLims(double xmin, double xmax, double ymin, double ymax)
     {
         if (xmax<xmin) {auto temp = xmax;xmax=xmin;xmin=temp;}
@@ -386,10 +406,12 @@ struct graph : Renderer
         if (xmin==xmax) {xmax+=1e-10;}
         if (ymin==ymax) {ymax+=1e-10;}
         // set lims
+        std::cout<<lims[3]<<std::endl;
         lims[0] = xmin;
         lims[1] = xmax;
         lims[2] = ymin;
         lims[3] = ymax;
+        std::cout<<lims[3]<<std::endl;
         // find nice ticks
         auto xRange = NiceNumber(lims[1] - lims[0], 0);
         auto xTick = NiceNumber(xRange/(8 - 1), 1);
@@ -412,16 +434,18 @@ struct graph : Renderer
     }
     void setLims(){
         // Automatically assigns limits to include all data in graph
+        std::cout<<"auto lims"<<std::endl;
         bool first = true;
         for(auto const &line: lines)
         {
+            std::cout<<"line..."<<std::endl;
             if (first || line->lims[0] < lims[0]) lims[0] = line->lims[0];
             if (first || line->lims[1] > lims[1]) lims[1] = line->lims[1];
             if (first || line->lims[2] < lims[2]) lims[2] = line->lims[2];
             if (first || line->lims[3] > lims[3]) lims[3] = line->lims[3];
             first=false;
         }
-        if (lines.empty()){lims[0]=0;lims[1]=1;lims[2]=0;lims[3]=1;}
+        if (lines.empty()){lims[0]=0;lims[1]=1;lims[2]=0;lims[3]=1;std::cout<<"empty"<<std::endl;}
         setLims(lims[0],lims[1],lims[2],lims[3]);
     }
 
@@ -430,7 +454,6 @@ struct graph : Renderer
         BeginDrawing();
         // Clear our area...
         DrawRectangleRec(bounds,GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
-        
 
         // Debugging outline
         // DrawRectangleLinesEx(bounds, 1, RED);

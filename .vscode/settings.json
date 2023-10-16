@@ -88,7 +88,8 @@
         "cinttypes": "cpp",
         "nnls": "cpp",
         "queue": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "__tree": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/g++"
 }

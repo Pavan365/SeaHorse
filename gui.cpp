@@ -13,20 +13,17 @@
  **********************************************************************************************/
 
 #include "raylib/raylib.h"
-#include <eigen/Eigen/Core>
-
-#include <iostream>
-#include <algorithm>
-
-
 #define TEXT_SPACING_VALUE 0
-Font fontTtf;
 #include "include/renderers.cpp"
 #include "include/random.cpp"
 
 #define RAYGUI_IMPLEMENTATION
 #include "raylib/raygui.h"
+#undef RAYGUI_IMPLEMENTATION
 
+#include <iostream>
+
+Font fontTtf;
 //----------------------------------------------------------------------------------
 // Useful Functions Implementation
 //----------------------------------------------------------------------------------
@@ -56,8 +53,8 @@ int main()
 {
     // Initialization
     //---------------------------------------------------------------------------------------
-    int screenWidth = 800;
-    int screenHeight = 450;
+    int screenWidth = 1280;
+    int screenHeight = 720;
     int monitor = GetCurrentMonitor();
     Renderer renderers = {};
 
@@ -82,7 +79,11 @@ int main()
     
     graph mainplot(Rectangle{150, 100, 600, 300},"position (nm)","Amplitude");
     renderers.subscribe(&mainplot);
-    mainplot.addLine(true);
+    mainplot.plot(true);
+
+    graph heatmapplot(Rectangle{150, 400, 600, 300},"position (nm)","Amplitude");
+    renderers.subscribe(&heatmapplot);
+    heatmapplot.heatmap();
 
     // Main loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
@@ -107,13 +108,10 @@ int main()
         if(!IsWindowFocused()) GuiDisable(); else GuiEnable();
 
         if ((IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) && IsKeyPressed(KEY_C)) QUIT();
-
-        if(IsKeyDown(KEY_P)) {mainplot.addLine(false);}
-        if(IsKeyDown(KEY_R)) {mainplot.setLims();}
-
+        if(IsKeyPressed(KEY_P)) {mainplot.plot(false);}
+        if (IsKeyPressed(KEY_Z)) {perfStats.toggle();}
 
         GuiDummyRec(Rectangle{50,150,100,100},"Dummy");
-        
         GuiButton(Rectangle{50,250,100,100},"X");
 
         if (IsFileDropped()) {
