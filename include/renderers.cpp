@@ -406,12 +406,10 @@ struct graph : Renderer
         if (xmin==xmax) {xmax+=1e-10;}
         if (ymin==ymax) {ymax+=1e-10;}
         // set lims
-        std::cout<<lims[3]<<std::endl;
         lims[0] = xmin;
         lims[1] = xmax;
         lims[2] = ymin;
         lims[3] = ymax;
-        std::cout<<lims[3]<<std::endl;
         // find nice ticks
         auto xRange = NiceNumber(lims[1] - lims[0], 0);
         auto xTick = NiceNumber(xRange/(8 - 1), 1);
@@ -434,18 +432,16 @@ struct graph : Renderer
     }
     void setLims(){
         // Automatically assigns limits to include all data in graph
-        std::cout<<"auto lims"<<std::endl;
         bool first = true;
         for(auto const &line: lines)
         {
-            std::cout<<"line..."<<std::endl;
             if (first || line->lims[0] < lims[0]) lims[0] = line->lims[0];
             if (first || line->lims[1] > lims[1]) lims[1] = line->lims[1];
             if (first || line->lims[2] < lims[2]) lims[2] = line->lims[2];
             if (first || line->lims[3] > lims[3]) lims[3] = line->lims[3];
             first=false;
         }
-        if (lines.empty()){lims[0]=0;lims[1]=1;lims[2]=0;lims[3]=1;std::cout<<"empty"<<std::endl;}
+        if (lines.empty()){lims[0]=0;lims[1]=1;lims[2]=0;lims[3]=1;}
         setLims(lims[0],lims[1],lims[2],lims[3]);
     }
 
