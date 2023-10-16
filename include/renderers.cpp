@@ -152,7 +152,7 @@ struct graphData
     inline void updateName(std::string n){name = n;}
     inline void updateColor(Color c){color = c;}
 
-    virtual void draw(Rectangle plot_extent, double plot_lims[4]) = 0;
+    virtual void draw(Rectangle inside_bounds, double plot_lims[4]) = 0;
 };
 
 struct graphLine : graphData
@@ -171,12 +171,12 @@ struct graphLine : graphData
     }
 
     public:
-    void draw(Rectangle plot_extent, double plot_lims[4])
+    void draw(Rectangle inside_bounds, double plot_lims[4])
     {
-        auto xFactor = (plot_extent.width)/(plot_lims[1] - plot_lims[0]);
-        auto yFactor = (plot_extent.height)/(plot_lims[3] - plot_lims[2]);
-        auto xToPos = [&](double x){return (float)((x-plot_lims[0])*xFactor+plot_extent.x);};
-        auto yToPos = [&](double y){return (float)(-(y-plot_lims[2])*yFactor+plot_extent.y+plot_extent.height);};
+        auto xFactor = (inside_bounds.width)/(plot_lims[1] - plot_lims[0]);
+        auto yFactor = (inside_bounds.height)/(plot_lims[3] - plot_lims[2]);
+        auto xToPos = [&](double x){return (float)((x-plot_lims[0])*xFactor+inside_bounds.x);};
+        auto yToPos = [&](double y){return (float)(-(y-plot_lims[2])*yFactor+inside_bounds.y+inside_bounds.height);};
 
         Vector2 start, end;
         for (auto i = 0; i < xData.size()-1; i++) {
@@ -232,12 +232,12 @@ struct graphHeatmap : graphData
     }
 
     public:
-    void draw(Rectangle plot_extent, double plot_lims[4])
+    void draw(Rectangle inside_bounds, double plot_lims[4])
     {
-        auto xWidth = plot_extent.width/zData.size();
-        auto yWidth = plot_extent.height/zData[0].size();
-        auto xOrigin = (lims[0]-plot_lims[0])*(plot_extent.width)/(plot_lims[1] - plot_lims[0])+plot_extent.x;
-        auto yOrigin = -(lims[3]-plot_lims[2])*(plot_extent.height)/(plot_lims[3] - plot_lims[2])+plot_extent.y+plot_extent.height;
+        auto xWidth = inside_bounds.width/zData.size();
+        auto yWidth = inside_bounds.height/zData[0].size();
+        auto xOrigin = (lims[0]-plot_lims[0])*(inside_bounds.width)/(plot_lims[1] - plot_lims[0])+inside_bounds.x;
+        auto yOrigin = -(lims[3]-plot_lims[2])*(inside_bounds.height)/(plot_lims[3] - plot_lims[2])+inside_bounds.y+inside_bounds.height;
         // const auto [zMin,zMax] = std::minmax_element(begin(zData), end(zData));
         
         SetRandomSeed(random());
@@ -457,49 +457,52 @@ struct graph : Renderer
         // Account for axis titles/ticks in bounds
         auto xLabelSize = MeasureTextEx(fontTtf,xLabel.c_str(),fontSize,0);
         auto yLabelSize = MeasureTextEx(fontTtf,yLabel.c_str(),fontSize,0);
-        Rectangle outer_bounds = {bounds.x + yLabelSize.y * 2, bounds.y, bounds.width - yLabelSize.y * 2, bounds.height - xLabelSize.y * 2};
-        
-        DrawRectangleRec(outer_bounds,WHITE);
+        auto data_bounds = Rectangle{bounds.x + yLabelSize.y * 2, bounds.y, bounds.width - yLabelSize.y * 2, bounds.height - xLabelSize.y * 2};
+        DrawRectangleRec(data_bounds,WHITE);
         
         // Draw the plot data
-        auto plot_extent = Rectangle{outer_bounds.x + padding.x,outer_bounds.y + padding.y,outer_bounds.width -padding.x*2,outer_bounds.height -padding.y*2};
-
-        auto xFactor = (plot_extent.width)/(lims[1] - lims[0]);
-        auto yFactor = (plot_extent.height)/(lims[3] - lims[2]);
-        auto xToPos = [&](double x){return (float)((x-lims[0])*xFactor+plot_extent.x);};
-        auto yToPos = [&](double y){return (float)(-(y-lims[2])*yFactor+plot_extent.y+plot_extent.height);};
+        auto inside_bounds = Rectangle{data_bounds.x + padding.x,data_bounds.y + padding.y,data_bounds.width -padding.x*2,data_bounds.height -padding.y*2};
+        auto xFactor = (inside_bounds.width)/(lims[1] - lims[0]);
+        auto yFactor = (inside_bounds.height)/(lims[3] - lims[2]);
+        auto xToPos = [&](double x){return (float)((x-lims[0])*xFactor+inside_bounds.x);};
+        auto yToPos = [&](double y){return (float)(-(y-lims[2])*yFactor+inside_bounds.y+inside_bounds.height);};
 
         // Draw lines
-        BeginScissorMode(outer_bounds.x,outer_bounds.y,outer_bounds.width,outer_bounds.height);
-        for(auto const &line: lines) line->draw(plot_extent,lims);
+        BeginScissorMode(data_bounds.x,data_bounds.y,data_bounds.width,data_bounds.height);
+        for(auto const &line: lines) line->draw(inside_bounds,lims);
         EndScissorMode();
 
         // Draw axis labels
         BeginScissorMode(bounds.x,bounds.y,bounds.width,bounds.height);
-        DrawTextEx(fontTtf,xLabel.c_str(),Vector2{outer_bounds.x + outer_bounds.width/2 - xLabelSize.x/2,outer_bounds.y + outer_bounds.height + xLabelSize.y},fontSize,0,BLACK);
-        DrawTextPro(fontTtf,yLabel.c_str(),Vector2{outer_bounds.x - yLabelSize.y * 2,outer_bounds.y + outer_bounds.height/2 + yLabelSize.x/2},Vector2{0,0},-90,fontSize,0,BLACK);
+        DrawTextEx(fontTtf,xLabel.c_str(),Vector2{data_bounds.x + data_bounds.width/2 - xLabelSize.x/2,data_bounds.y + data_bounds.height + xLabelSize.y},fontSize,0,BLACK);
+        DrawTextPro(fontTtf,yLabel.c_str(),Vector2{data_bounds.x - yLabelSize.y * 2,data_bounds.y + data_bounds.height/2 + yLabelSize.x/2},Vector2{0,0},-90,fontSize,0,BLACK);
 
         // Draw ticks + numbers
         for (auto i=0;i<xTicks.size();i++){
             auto xtick = xTicks.at(i);
             auto xticklabel = xTickLabels.at(i).c_str();
-            DrawLineEx(Vector2{xToPos(xtick),outer_bounds.y+outer_bounds.height},Vector2{xToPos(xtick),outer_bounds.y+outer_bounds.height-fontSize/3},2,DARKGRAY);
+            DrawLineEx(Vector2{xToPos(xtick),data_bounds.y+data_bounds.height},Vector2{xToPos(xtick),data_bounds.y+data_bounds.height-fontSize/3},2,DARKGRAY);
 
             auto textSize = MeasureTextEx(fontTtf,xticklabel,fontSize*0.8,0);
-            DrawTextEx(fontTtf,xticklabel,Vector2{xToPos(xtick)-textSize.x/2,outer_bounds.y+outer_bounds.height},fontSize*0.8,0,DARKGRAY);
+            // If we arent fully in the plot area dont show the tick label
+            auto pos = Vector2{xToPos(xtick)-textSize.x/2,data_bounds.y+data_bounds.height};
+            if (pos.x < bounds.x || pos.x+textSize.x > bounds.x+bounds.width){continue;}
+            DrawTextEx(fontTtf,xticklabel,pos,fontSize*0.8,0,DARKGRAY);
         }
         for (auto i=0;i<yTicks.size();i++){
             auto ytick = yTicks.at(i);
             auto yticklabel = yTickLabels.at(i).c_str();
-            DrawLineEx(Vector2{outer_bounds.x,yToPos(ytick)},Vector2{outer_bounds.x+fontSize/3,yToPos(ytick)},2,DARKGRAY);
+            DrawLineEx(Vector2{data_bounds.x,yToPos(ytick)},Vector2{data_bounds.x+fontSize/3,yToPos(ytick)},2,DARKGRAY);
 
             auto textSize = MeasureTextEx(fontTtf,yticklabel,fontSize*0.8,0);
-            DrawTextPro(fontTtf,yticklabel,Vector2{outer_bounds.x-textSize.y,yToPos(ytick)+textSize.x/2},Vector2{0,0},-90,fontSize*0.8,0,DARKGRAY);
+            // If we arent fully in the plot area dont show the tick label
+            auto pos = Vector2{data_bounds.x-textSize.y,yToPos(ytick)+textSize.x/2};
+            if (pos.y < bounds.y || pos.y+textSize.y > data_bounds.y+data_bounds.height){continue;}
+            DrawTextPro(fontTtf,yticklabel,pos,Vector2{0,0},-90,fontSize*0.8,0,DARKGRAY);
         }
 
-
         // Draw graph outline
-        auto outline_bounds = Rectangle{outer_bounds.x-1,outer_bounds.y-1,outer_bounds.width+2,outer_bounds.height+2};
+        auto outline_bounds = Rectangle{data_bounds.x-1,data_bounds.y-1,data_bounds.width+2,data_bounds.height+2};
         DrawRectangleLinesEx(outline_bounds, 2, BLACK);
         EndScissorMode();
         EndDrawing();
