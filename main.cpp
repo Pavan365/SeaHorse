@@ -4,9 +4,7 @@ using namespace Spectra;
 
 int main()
 {
-    std::__1::chrono::steady_clock::time_point start = std::chrono::high_resolution_clock::now();;
-
-
+    std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
     const int dim = 1<<11;
 
@@ -61,10 +59,9 @@ int main()
     for(int i=0;i<eig.cols();i++){
         Eigen::VectorXd vect = eig.col(i)(seq(0,Eigen::placeholders::last-1));
         auto energy = eig(Eigen::placeholders::last,i);
-
     }
 
-    std::cout<<(start-std::chrono::high_resolution_clock::now()).count()<<": Ran "<<dim<<"x"<<dim<<std::endl;
+    std::cout<<((std::chrono::system_clock::now()-start).count())/1e6<<" seconds: Ran "<<dim<<"x"<<dim<<std::endl;
 
     return 0;
 }

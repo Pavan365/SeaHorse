@@ -1,10 +1,11 @@
 STDS ?= -std=c++17
-WFLAGS ?= -Wall -Wpedantic
+WFLAGS ?= -Wall -Wpedantic -Wno-deprecated-declarations
 DEFS ?= 
 LIBS ?=
 IPATH ?=
 LPATH ?=
 OPTS ?=
+FRAMEWORKS ?= -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 
 # Using libs...
 IPATH += -I./libs
@@ -38,7 +39,7 @@ time: release
 
 # Raylib testing
 gui:
-	clang -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL $(STDS) $(IPATH) ./libs/raylib/libraylib.a $@.cpp -o ./bin/$@
+	$(CXX) $(FRAMEWORKS) $(STDS) $(WFLAGS) $(IPATH) ./libs/raylib/libraylib.a $@.cpp -g -o ./bin/$@
 	$(RUN) ./bin/$@ $(ARGS)
 
 # NB: MUST BE [sources/objects] then [flags] then [output] OR LINKING FAILS
