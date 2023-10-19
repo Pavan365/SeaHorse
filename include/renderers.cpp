@@ -1,15 +1,12 @@
-#include "raylib/raylib.h"
-#include "raylib/raygui.h"
-#include <eigen/Eigen/Core>
+#ifndef SEAHORSE_RENDERERS
+#define SEAHORSE_RENDERERS
 
-#include <vector>
 #include <thread>
 #include <unistd.h>
-#include <iostream>
 #include <iomanip>
-#include <sstream>
+#include "raylib/raygui.h"
 
-#define VEC_FROM_EIGEN(v) std::vector<double>(v.data(),v.data()+v.size())
+#define VEC_FROM_RVEC(v) std::vector<double>(v._vec.data(),v._vec.data()+v._vec.size())
 #define VEC_VEC_FROM_EIGEN(m) ([](Eigen::MatrixXd z){std::vector<std::vector<double>> m2; for(int i = 0; i<z.cols(); i++){m2.push_back(std::vector<double>(z.data()+i*z.rows(),z.data()+z.rows()*(i+1)));}; return m2; }(m))
 
 struct Renderer
@@ -17,11 +14,12 @@ struct Renderer
     // Lets renderers subscribe themselves to this manager to re-draw them when needed
     void subscribe(Renderer* r){subscribers.push_back(r);r->manager=this;}
     virtual void draw() {
-        ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
+        // ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
         for(auto iter = subscribers.begin(); iter != subscribers.end(); ++iter) {
             (*iter)->draw();
         }
     }
+
     Renderer* manager; // who controls our redrawing
     private:
     std::vector<Renderer*> subscribers; // whos redrawing we control
@@ -29,8 +27,9 @@ struct Renderer
 
 struct PerfStats : Renderer
 {
+    private:
     int fontSize = 12;
-    Font fontTtf = LoadFontEx("UbuntuMonoBold.ttf",fontSize,0,0);
+    Font fontTtf = LoadFontFromMemory(".ttf",UbuntuMonoBold,(sizeof(UbuntuMonoBold)/sizeof(*UbuntuMonoBold)),fontSize,0,0);
 
     bool off = false;
 
@@ -40,6 +39,21 @@ struct PerfStats : Renderer
     char statscommand[1024];
 
     Rectangle bounds{0,0,0,0};
+
+    // Execute command through pipe
+    std::string exec(const char *cmd)
+    {
+        std::array<char, 256> buffer; // holds data - we dont expect that much as we only pull rss and pcpu
+        std::string result;
+        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+        if (!pipe) throw std::runtime_error("popen() failed!");
+
+        while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) result += buffer.data();
+
+        return result;
+    }
+
+    public:
     // Constructor
     PerfStats(int posX, int posY) : bounds(Rectangle{(float)posX,(float)posY,0,0})
     {
@@ -55,25 +69,12 @@ struct PerfStats : Renderer
         update(true);
     };
 
-    // Execute command through pipe
-    std::string exec(const char *cmd)
-    {
-        std::array<char, 256> buffer; // holds data - we dont expect that much as we only pull rss and pcpu
-        std::string result;
-        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-        if (!pipe) throw std::runtime_error("popen() failed!");
-
-        while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) result += buffer.data();
-
-        return result;
-    }
-
     // Get stats again if we have waited long enough
     int update(bool force = false)
     {
         auto newtime = std::chrono::system_clock::now();
 
-        if ((newtime - time).count() > 0.17e6 || force)
+        if (((newtime - time).count() > 0.17e6 && off==false) || force)
         { // only update every 0.17s
             sscanf(exec(PerfStats::statscommand).c_str(), "%lf %i %i", &(PerfStats::pcpu), &(PerfStats::rss), &(PerfStats::nthreads));
             PerfStats::fps = GetFPS();
@@ -88,6 +89,7 @@ struct PerfStats : Renderer
         return 0;
     }
 
+    // Draw stats in the designated position
     void draw()
     {
         if (off==true) return;
@@ -105,7 +107,6 @@ struct PerfStats : Renderer
 
         bounds.width = numsSize.x + unitsSize.x + fontSize;
         bounds.height = fontSize + std::max(numsSize.y, unitsSize.y);
-        BeginDrawing();
         BeginScissorMode(bounds.x,bounds.y,bounds.width,bounds.height);
 
         DrawRectangleLinesEx(bounds,1,BLACK);
@@ -127,8 +128,9 @@ struct PerfStats : Renderer
         DrawTextEx(fontTtf, TextFormat("%.2f GB", PerfStats::rssGB), Vector2{bounds.x+fontSize/2 + unitsSize.x, bounds.y+fontSize/2 + 3 * numsSize.y / 4}, fontSize, TEXT_SPACING_VALUE, color);
         
         EndScissorMode();
-        EndDrawing();
     }
+    
+    // Hide/show the stats
     void toggle(){
         off = !off;
         manager->draw();
@@ -164,9 +166,12 @@ struct graphLine : graphData
     bool drawLine = true;
 
     // Constructor
-    graphLine(std::vector<double> x, std::vector<double> y, std::string n, Color c) : graphData(c,n), xData(x), yData(y)
+    graphLine(std::vector<double> x, std::vector<double> y, std::string n, Color c) : graphData(c,n)
     {
-        if(x.size() != y.size()){std::cerr<<"Non-matching sizes in graph data for "<<name<<std::endl;}
+        if (x.size()!=0){xData = x;}
+        if (y.size()!=0){yData = y;}
+        if(x.size() != y.size()){std::cerr<<"Non-matching sizes in graph data for "<<name<<": "<<x.size()<<" vs "<<y.size()<<std::endl;}
+
         setLims();
     }
 
@@ -179,6 +184,7 @@ struct graphLine : graphData
         auto yToPos = [&](double y){return (float)(-(y-plot_lims[2])*yFactor+inside_bounds.y+inside_bounds.height);};
 
         Vector2 start, end;
+        if (xData.size()==0 || yData.size()==0){return;}
         for (auto i = 0; i < xData.size()-1; i++) {
             start = {xToPos(xData[i]), yToPos(yData[i])};
             end = {xToPos(xData[i+1]), yToPos(yData[i+1])};
@@ -207,6 +213,8 @@ struct graphLine : graphData
     }
     void setLims()
     {
+        if (xData.size()==0){return;};
+        if (yData.size()==0){return;};
         const auto [x0,x1] = std::minmax_element(begin(xData), end(xData));
         const auto [y0,y1] = std::minmax_element(begin(yData), end(yData));
         lims[0] = (*x0);
@@ -238,9 +246,9 @@ struct graphHeatmap : graphData
         auto yWidth = inside_bounds.height/zData[0].size();
         auto xOrigin = (lims[0]-plot_lims[0])*(inside_bounds.width)/(plot_lims[1] - plot_lims[0])+inside_bounds.x;
         auto yOrigin = -(lims[3]-plot_lims[2])*(inside_bounds.height)/(plot_lims[3] - plot_lims[2])+inside_bounds.y+inside_bounds.height;
-        // const auto [zMin,zMax] = std::minmax_element(begin(zData), end(zData));
+        // const auto [zMin,zMax] = std::minmax_element(begin(zData), end(zData)); // NB CHECK ZDATA HAS SIZE BEFORE DOING THIS
         
-        SetRandomSeed(random());
+        if (xData.size()==0 || yData.size()==0){return;}
         for (auto x=0;x<zData.size();x++)
         {
             for (auto y=0;y<zData[x].size();y++)
@@ -265,6 +273,7 @@ struct graphHeatmap : graphData
     }
     void setLims()
     {
+        if (xData.size()==0 || yData.size()==0){return;};
         const auto [x0,x1] = std::minmax_element(begin(xData), end(xData));
         const auto [y0,y1] = std::minmax_element(begin(yData), end(yData));
         lims[0] = (*x0);
@@ -276,31 +285,40 @@ struct graphHeatmap : graphData
 
 struct graph : Renderer
 {
-    std::vector<std::unique_ptr<graphData>> lines;
+    private:
+    std::vector<std::shared_ptr<graphData>> lines;
 
     std::vector<double> xTicks;
     std::vector<std::string> xTickLabels;
+    double xOffset = 0;
     std::vector<double> yTicks;
     std::vector<std::string> yTickLabels;
+    double yOffset = 0;
+
     double lims[4] = {0,1,0,1};
 
     std::string xLabel;
     std::string yLabel;
     int fontSize = 20;
-    Font fontTtf = LoadFontEx("UbuntuMonoBold.ttf",fontSize,0,0);
+    Font fontTtf = LoadFontFromMemory(".ttf",UbuntuMonoBold,(sizeof(UbuntuMonoBold)/sizeof(*UbuntuMonoBold)),fontSize,0,0);
+    int fontSize2 = 15;
+    Font fontTtf2 = LoadFontFromMemory(".ttf",UbuntuMonoBold,(sizeof(UbuntuMonoBold)/sizeof(*UbuntuMonoBold)),fontSize2,0,0);
 
     Vector2 padding = {0,8};
-    bool legend = false;
+    // bool legend = false;
 
-    Rectangle bounds = Rectangle{0,0,-100,-100};
+    Rectangle bounds;
 
+    public:
     //Constructors
-    graph(Rectangle bounds, std::string xLabel,std::string yLabel) : lines(std::vector<std::unique_ptr<graphData>>()),xLabel(xLabel),yLabel(yLabel),bounds(bounds)
+    graph(Rectangle bounds, std::string xLabel,std::string yLabel) : lines(std::vector<std::shared_ptr<graphData>>()),xLabel(xLabel),yLabel(yLabel),bounds(bounds)
     {
+        // Avoid pixel issues by rounding to integers
+        graph::bounds = {(float)(int)bounds.x,(float)(int)bounds.y,(float)(int)bounds.width,(float)(int)bounds.height};
         setLims();
         draw();
     }
-    graph(Rectangle bounds): graph(bounds,"",""){}
+    graph(Rectangle bounds) : graph(bounds,"","") {}
 
     // Internal functions
     private:
@@ -336,57 +354,60 @@ struct graph : Renderer
 
         return NiceFraction*pow(10, (double)Exponent);
     }
-    std::string FormatNumber(double f, double step)
+    std::string FormatNumber(double f, double step, double smallestTick)
     {
         std::stringstream ss;
-        if (step > 1000) { ss << std::scientific << std::setprecision(0) << f << std::fixed;}
-        else if (step>1) {ss << std::round(f);}
-        else {ss << std::setprecision(2) << f;}
+        // If we step small amounts relative to the overall value then we subtract out the min to avoid values like 1.23e3,1.23e3,1.23e3...
+        if (step*100<std::abs(smallestTick)) f -= smallestTick;
+        
+        ss << std::setprecision(4) << f;
         auto output = ss.str();
 
+        ReplaceStringInPlace(output,"e+0","e");
+        ReplaceStringInPlace(output,"e-0","e-");
         if(output=="-0") output = "0";
-        ReplaceStringInPlace(output,"e+0",".e");
-        ReplaceStringInPlace(output,"e-0",".e-");
         return output;
     }
 
     // Plotting functions
     public:
-    void plot(std::vector<double> x, std::vector<double> y, std::string n, Color c)
+    auto plot(std::vector<double> x, std::vector<double> y, std::string n, Color c)
     {
-        lines.push_back(std::make_unique<graphLine>(x,y,n,c));
-        setLims();
+        lines.push_back(std::make_shared<graphLine>(x,y,n,c));
+        if (lines.size()==1) setLims(); // set lims if we've added the first line
         draw();
+        return lines.back();
     }
-    void plot(std::vector<double> x, std::vector<double> y) {plot(x,y, "", BLACK);}
-    void plot(Eigen::VectorXd x, Eigen::VectorXd y, std::string n, Color c) {plot(VEC_FROM_EIGEN(x),VEC_FROM_EIGEN(y),n,c);}
-    void plot(Eigen::VectorXd x, Eigen::VectorXd y) {plot(VEC_FROM_EIGEN(x), VEC_FROM_EIGEN(y));}
-    void plot(bool swap)// Testing
+    auto plot(std::vector<double> x, std::vector<double> y) {return plot(x,y, "", BLACK);}
+    auto plot(RVec x, RVec y, std::string n, Color c) {return plot(VEC_FROM_RVEC(x),VEC_FROM_RVEC(y),n,c);}
+    auto plot(RVec x, RVec y) {return plot(VEC_FROM_RVEC(x), VEC_FROM_RVEC(y));}
+    auto plot(bool swap)// Testing
     {
         std::vector<double> x;
         std::vector<double> y;
         std::string n = swap==true ? "Test - sin" : "Test - cos";
         Color c = swap==true ? RED : BLUE;
 
-        for(double i=-100;i<=50;i+=.1)
+        for(double i=-10;i<=150;i+=.1)
         {
             x.push_back(i);
-            y.push_back(swap==true ? 7+sin(i) : cos(i)-0.1*i);
+            y.push_back(swap==true ? 7e-6*sin(i) : cos(i)+0.1*i*i);
         }
-        plot(x,y,n,c);  
+        return plot(x,y,n,c);  
     }
-
-    void heatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z, std::string n, Color c, Color c2){
-        lines.push_back(std::make_unique<graphHeatmap>(x,y,z,n,c,c2));
-        setLims();
+    
+    auto heatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z, std::string n, Color c, Color c2){
+        lines.push_back(std::make_shared<graphHeatmap>(x,y,z,n,c,c2));
+        if (lines.size()==1) setLims(); // set lims if we've added the first line
         draw();
+        return lines.back();
     }
-    void heatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z) {heatmap(x, y, z, "", BLUE, PURPLE);}
-    void heatmap(std::vector<std::vector<double>> z) {heatmap(std::vector<double>(0,1), std::vector<double>(0,1), z);}
-    void heatmap(Eigen::VectorXd x, Eigen::VectorXd y, Eigen::MatrixXd z, std::string n, Color c, Color c2) {heatmap(VEC_FROM_EIGEN(x),VEC_FROM_EIGEN(y),VEC_VEC_FROM_EIGEN(z),n,c,c2);}
-    void heatmap(Eigen::VectorXd x, Eigen::VectorXd y, Eigen::MatrixXd z) {heatmap(VEC_FROM_EIGEN(x),VEC_FROM_EIGEN(y),VEC_VEC_FROM_EIGEN(z));}
-    void heatmap(Eigen::MatrixXd z) {heatmap(VEC_VEC_FROM_EIGEN(z));}
-    void heatmap()// Testing
+    auto heatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z) {return heatmap(x, y, z, "", BLUE, PURPLE);}
+    auto heatmap(std::vector<std::vector<double>> z) {return heatmap(std::vector<double>(0,1), std::vector<double>(0,1), z);}
+    auto heatmap(RVec x, RVec y, Eigen::MatrixXd z, std::string n, Color c, Color c2) {return heatmap(VEC_FROM_RVEC(x),VEC_FROM_RVEC(y),VEC_VEC_FROM_EIGEN(z),n,c,c2);}
+    auto heatmap(RVec x, RVec y, Eigen::MatrixXd z) {return heatmap(VEC_FROM_RVEC(x),VEC_FROM_RVEC(y),VEC_VEC_FROM_EIGEN(z));}
+    auto heatmap(Eigen::MatrixXd z) {return heatmap(VEC_VEC_FROM_EIGEN(z));}
+    auto heatmap()// Testing
     {
         std::vector<double> x = {0,1};
         std::vector<double> y = {0,5};
@@ -395,12 +416,14 @@ struct graph : Renderer
         z.push_back(std::vector<double>{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20});
         z.push_back(std::vector<double>{-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18});
         z.push_back(std::vector<double>{-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16});
-        heatmap(x,y,z);
+        return heatmap(x,y,z);
     }
 
     // Util. functions
     void setLims(double xmin, double xmax, double ymin, double ymax)
     {
+        xOffset = 0; yOffset = 0;
+        // Check for and fix issues
         if (xmax<xmin) {auto temp = xmax;xmax=xmin;xmin=temp;}
         if (ymax<ymin) {auto temp = lims[3];lims[3]=lims[2];lims[2]=temp;}
         if (xmin==xmax) {xmax+=1e-10;}
@@ -410,6 +433,7 @@ struct graph : Renderer
         lims[1] = xmax;
         lims[2] = ymin;
         lims[3] = ymax;
+
         // find nice ticks
         auto xRange = NiceNumber(lims[1] - lims[0], 0);
         auto xTick = NiceNumber(xRange/(8 - 1), 1);
@@ -418,16 +442,20 @@ struct graph : Renderer
         // set ticks
         xTicks.clear();
         xTickLabels.clear();
-        for (auto i = ceil(lims[0]/xTick)*xTick; i<=lims[1]; i+=xTick){
+        auto smallestTick = ceil(lims[0]/xTick)*xTick;
+        for (auto i = smallestTick; i<=lims[1]; i+=xTick){
             xTicks.push_back(i);
-            xTickLabels.push_back(FormatNumber(i,xTick));
+            xTickLabels.push_back(FormatNumber(i,xTick,smallestTick));
         }
+        if (xTick*100<std::abs(smallestTick)) {xOffset = smallestTick;}
         yTicks.clear();
         yTickLabels.clear();
-        for (auto i = ceil(lims[2]/yTick)*yTick; i<=lims[3]; i+=yTick){
+        smallestTick = ceil(lims[2]/yTick)*yTick;
+        for (auto i = smallestTick; i<=lims[3]; i+=yTick){
             yTicks.push_back(i);
-            yTickLabels.push_back(FormatNumber(i,yTick));
+            yTickLabels.push_back(FormatNumber(i,yTick,smallestTick));
         }
+        if (yTick*100<std::abs(smallestTick)) {yOffset = smallestTick;}
         draw();
     }
     void setLims(){
@@ -444,21 +472,20 @@ struct graph : Renderer
         if (lines.empty()){lims[0]=0;lims[1]=1;lims[2]=0;lims[3]=1;}
         setLims(lims[0],lims[1],lims[2],lims[3]);
     }
-
+    void setPadding(float x, float y)
+    {
+        padding = Vector2{x,y};
+    }
+    
     void draw()
     {
-        BeginDrawing();
-        // Clear our area...
-        DrawRectangleRec(bounds,GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
+        auto loc = Vector2{}; // Used as a buffer for ensuring pixel aligned drawing
 
-        // Debugging outline
-        // DrawRectangleLinesEx(bounds, 1, RED);
         
         // Account for axis titles/ticks in bounds
         auto xLabelSize = MeasureTextEx(fontTtf,xLabel.c_str(),fontSize,0);
         auto yLabelSize = MeasureTextEx(fontTtf,yLabel.c_str(),fontSize,0);
         auto data_bounds = Rectangle{bounds.x + yLabelSize.y * 2, bounds.y, bounds.width - yLabelSize.y * 2, bounds.height - xLabelSize.y * 2};
-        DrawRectangleRec(data_bounds,WHITE);
         
         // Draw the plot data
         auto inside_bounds = Rectangle{data_bounds.x + padding.x,data_bounds.y + padding.y,data_bounds.width -padding.x*2,data_bounds.height -padding.y*2};
@@ -467,6 +494,12 @@ struct graph : Renderer
         auto xToPos = [&](double x){return (float)((x-lims[0])*xFactor+inside_bounds.x);};
         auto yToPos = [&](double y){return (float)(-(y-lims[2])*yFactor+inside_bounds.y+inside_bounds.height);};
 
+        // Debugging outline
+        // DrawRectangleLinesEx(bounds, 1, RED);
+        // Clear our area...
+        DrawRectangleRec(bounds,GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
+        DrawRectangleRec(data_bounds,WHITE);
+        
         // Draw lines
         BeginScissorMode(data_bounds.x,data_bounds.y,data_bounds.width,data_bounds.height);
         for(auto const &line: lines) line->draw(inside_bounds,lims);
@@ -474,37 +507,56 @@ struct graph : Renderer
 
         // Draw axis labels
         BeginScissorMode(bounds.x,bounds.y,bounds.width,bounds.height);
-        DrawTextEx(fontTtf,xLabel.c_str(),Vector2{data_bounds.x + data_bounds.width/2 - xLabelSize.x/2,data_bounds.y + data_bounds.height + xLabelSize.y},fontSize,0,BLACK);
-        DrawTextPro(fontTtf,yLabel.c_str(),Vector2{data_bounds.x - yLabelSize.y * 2,data_bounds.y + data_bounds.height/2 + yLabelSize.x/2},Vector2{0,0},-90,fontSize,0,BLACK);
-
+        loc = Vector2{data_bounds.x + data_bounds.width/2 - xLabelSize.x/2,data_bounds.y + data_bounds.height + xLabelSize.y - 2};
+        DrawTextEx(fontTtf,xLabel.c_str(),loc,fontSize,0,BLACK);
+        loc = Vector2{data_bounds.x - yLabelSize.y * 2 + 2,data_bounds.y + data_bounds.height/2 + yLabelSize.x/2};
+        DrawTextPro(fontTtf,yLabel.c_str(),loc,Vector2{0,0},-90,fontSize,0,BLACK);
+        
         // Draw ticks + numbers
         for (auto i=0;i<xTicks.size();i++){
             auto xtick = xTicks.at(i);
             auto xticklabel = xTickLabels.at(i).c_str();
             DrawLineEx(Vector2{xToPos(xtick),data_bounds.y+data_bounds.height},Vector2{xToPos(xtick),data_bounds.y+data_bounds.height-fontSize/3},2,DARKGRAY);
 
-            auto textSize = MeasureTextEx(fontTtf,xticklabel,fontSize*0.8,0);
+            auto textSize = MeasureTextEx(fontTtf,xticklabel,fontSize2,0);
             // If we arent fully in the plot area dont show the tick label
-            auto pos = Vector2{xToPos(xtick)-textSize.x/2,data_bounds.y+data_bounds.height};
-            if (pos.x < bounds.x || pos.x+textSize.x > bounds.x+bounds.width){continue;}
-            DrawTextEx(fontTtf,xticklabel,pos,fontSize*0.8,0,DARKGRAY);
+            auto loc = Vector2{xToPos(xtick)-textSize.x/2,data_bounds.y+data_bounds.height+2};
+            if (loc.x < bounds.x || loc.x+textSize.x > bounds.x+bounds.width){continue;}
+            DrawTextEx(fontTtf,xticklabel,loc,fontSize2,0,DARKGRAY);
         }
+        float lastpos = yToPos(lims[2]); // make sure ticklabels dont overlap
         for (auto i=0;i<yTicks.size();i++){
             auto ytick = yTicks.at(i);
             auto yticklabel = yTickLabels.at(i).c_str();
-            DrawLineEx(Vector2{data_bounds.x,yToPos(ytick)},Vector2{data_bounds.x+fontSize/3,yToPos(ytick)},2,DARKGRAY);
+            DrawLineEx(Vector2{data_bounds.x,yToPos(ytick)},Vector2{data_bounds.x+fontSize2/3,yToPos(ytick)},2,DARKGRAY);
 
-            auto textSize = MeasureTextEx(fontTtf,yticklabel,fontSize*0.8,0);
-            // If we arent fully in the plot area dont show the tick label
-            auto pos = Vector2{data_bounds.x-textSize.y,yToPos(ytick)+textSize.x/2};
-            if (pos.y < bounds.y || pos.y+textSize.y > data_bounds.y+data_bounds.height){continue;}
-            DrawTextPro(fontTtf,yticklabel,pos,Vector2{0,0},-90,fontSize*0.8,0,DARKGRAY);
+            auto textSize = MeasureTextEx(fontTtf,yticklabel,fontSize2,0);
+            // If we arent fully in the plot area or overlap the last label dont show the label
+            auto loc = Vector2{data_bounds.x-textSize.y-2,yToPos(ytick)+textSize.x/2};
+            if (loc.y-textSize.x < bounds.y || loc.y > data_bounds.y+data_bounds.height || loc.y > (lastpos - textSize.y/2)){continue;}
+            lastpos = loc.y-textSize.x;
+            DrawTextPro(fontTtf,yticklabel,loc,Vector2{0,0},-90,fontSize2,0,DARKGRAY);
         }
 
+        // Draw axis offsets
+        if (xOffset != 0) {
+            std::stringstream ss;
+            ss << "+(" << std::setprecision(4) << xOffset << ")";
+            loc = Vector2{xToPos(lims[1])-MeasureTextEx(fontTtf2,ss.str().c_str(),fontSize2,0).x,data_bounds.y+data_bounds.height+2+fontSize2};
+            DrawTextEx(fontTtf2,ss.str().c_str(),loc,fontSize2,0,DARKGRAY);
+        }
+        if (yOffset != 0) {
+            std::stringstream ss;
+            ss << "+(" << std::setprecision(4) << yOffset << ")";
+            auto textSize = MeasureTextEx(fontTtf2,ss.str().c_str(),fontSize2,0);
+            loc = Vector2{data_bounds.x-2*textSize.y-2,yToPos(lims[3])+textSize.x};
+            DrawTextPro(fontTtf2,ss.str().c_str(),loc,Vector2{0,0},-90,fontSize2,0,DARKGRAY);
+        }
         // Draw graph outline
-        auto outline_bounds = Rectangle{data_bounds.x-1,data_bounds.y-1,data_bounds.width+2,data_bounds.height+2};
+        auto outline_bounds = Rectangle{data_bounds.x-1,data_bounds.y,data_bounds.width+1,data_bounds.height+2};
         DrawRectangleLinesEx(outline_bounds, 2, BLACK);
         EndScissorMode();
-        EndDrawing();
     }
 };
+
+#endif // SEAHORSE_RENDERERS

@@ -1,0 +1,4 @@
+#ifndef SEAHORSE_GLOBALS
+#define SEAHORSE_GLOBALS
+
+#endif // SEAHORSE_GLOBALS

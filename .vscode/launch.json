@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(lldb) GUI",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/gui",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "preLaunchTask": "makefile gui"
+        },
+    ]
+}

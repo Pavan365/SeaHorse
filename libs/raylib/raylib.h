@@ -986,6 +986,14 @@ RLAPI const char *GetClipboardText(void);                         // Get clipboa
 RLAPI void EnableEventWaiting(void);                              // Enable waiting for events on EndDrawing(), no automatic event polling
 RLAPI void DisableEventWaiting(void);                             // Disable waiting for events on EndDrawing(), automatic events polling
 
+// Custom frame control functions
+// NOTE: Those functions are intended for advance users that want full control over the frame processing
+// By default EndDrawing() does this job: draws everything + SwapScreenBuffer() + manage frame timing + PollInputEvents()
+// To avoid that behaviour and control frame processes manually, enable in config.h: SUPPORT_CUSTOM_FRAME_CONTROL
+RLAPI void SwapScreenBuffer(void);                                // Swap back buffer with front buffer (screen drawing)
+RLAPI void PollInputEvents(void);                                 // Register all input events
+RLAPI void WaitTime(double seconds);                              // Wait for some time (halt program execution)
+
 // Cursor-related functions
 RLAPI void ShowCursor(void);                                      // Shows cursor
 RLAPI void HideCursor(void);                                      // Hides cursor
@@ -1041,32 +1049,23 @@ RLAPI Vector2 GetWorldToScreen2D(Vector2 position, Camera2D camera); // Get the 
 
 // Timing-related functions
 RLAPI void SetTargetFPS(int fps);                                 // Set target FPS (maximum)
+RLAPI int GetFPS(void);                                           // Get current FPS
 RLAPI float GetFrameTime(void);                                   // Get time in seconds for last frame drawn (delta time)
 RLAPI double GetTime(void);                                       // Get elapsed time in seconds since InitWindow()
-RLAPI int GetFPS(void);                                           // Get current FPS
-
-// Custom frame control functions
-// NOTE: Those functions are intended for advance users that want full control over the frame processing
-// By default EndDrawing() does this job: draws everything + SwapScreenBuffer() + manage frame timing + PollInputEvents()
-// To avoid that behaviour and control frame processes manually, enable in config.h: SUPPORT_CUSTOM_FRAME_CONTROL
-RLAPI void SwapScreenBuffer(void);                                // Swap back buffer with front buffer (screen drawing)
-RLAPI void PollInputEvents(void);                                 // Register all input events
-RLAPI void WaitTime(double seconds);                              // Wait for some time (halt program execution)
 
 // Misc. functions
 RLAPI int GetRandomValue(int min, int max);                       // Get a random value between min and max (both included)
 RLAPI void SetRandomSeed(unsigned int seed);                      // Set the seed for the random number generator
 RLAPI void TakeScreenshot(const char *fileName);                  // Takes a screenshot of current screen (filename extension defines format)
 RLAPI void SetConfigFlags(unsigned int flags);                    // Setup init configuration flags (view FLAGS)
-RLAPI void OpenURL(const char *url);                              // Open URL with default system browser (if available)
 
-// NOTE: Following functions implemented in module [utils]
-//------------------------------------------------------------------
 RLAPI void TraceLog(int logLevel, const char *text, ...);         // Show trace log messages (LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR...)
 RLAPI void SetTraceLogLevel(int logLevel);                        // Set the current threshold (minimum) log level
 RLAPI void *MemAlloc(unsigned int size);                          // Internal memory allocator
 RLAPI void *MemRealloc(void *ptr, unsigned int size);             // Internal memory reallocator
 RLAPI void MemFree(void *ptr);                                    // Internal memory free
+
+RLAPI void OpenURL(const char *url);                              // Open URL with default system browser (if available)
 
 // Set custom callbacks
 // WARNING: Callbacks setup is intended for advance users
@@ -1084,9 +1083,6 @@ RLAPI bool ExportDataAsCode(const unsigned char *data, int dataSize, const char 
 RLAPI char *LoadFileText(const char *fileName);                   // Load text data from file (read), returns a '\0' terminated string
 RLAPI void UnloadFileText(char *text);                            // Unload file text data allocated by LoadFileText()
 RLAPI bool SaveFileText(const char *fileName, char *text);        // Save text data to file (write), string must be '\0' terminated, returns true on success
-//------------------------------------------------------------------
-
-// File system functions
 RLAPI bool FileExists(const char *fileName);                      // Check if file exists
 RLAPI bool DirectoryExists(const char *dirPath);                  // Check if a directory path exists
 RLAPI bool IsFileExtension(const char *fileName, const char *ext); // Check file extension (including point: .png, .wav)
@@ -1124,9 +1120,9 @@ RLAPI bool IsKeyPressedRepeat(int key);                       // Check if a key 
 RLAPI bool IsKeyDown(int key);                                // Check if a key is being pressed
 RLAPI bool IsKeyReleased(int key);                            // Check if a key has been released once
 RLAPI bool IsKeyUp(int key);                                  // Check if a key is NOT being pressed
+RLAPI void SetExitKey(int key);                               // Set a custom key to exit program (default is ESC)
 RLAPI int GetKeyPressed(void);                                // Get key pressed (keycode), call it multiple times for keys queued, returns 0 when the queue is empty
 RLAPI int GetCharPressed(void);                               // Get char pressed (unicode), call it multiple times for chars queued, returns 0 when the queue is empty
-RLAPI void SetExitKey(int key);                               // Set a custom key to exit program (default is ESC)
 
 // Input-related functions: gamepads
 RLAPI bool IsGamepadAvailable(int gamepad);                   // Check if a gamepad is available

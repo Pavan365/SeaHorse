@@ -1,6 +1,4 @@
-#include "seahorse/seahorse.h"
-using namespace Eigen;
-using namespace Spectra;
+#include "seahorse.h"
 
 int main()
 {
@@ -12,15 +10,22 @@ int main()
     const auto xlim = PI/k/2 * 3;
 
     auto hs = HilbertSpace(dim,xlim);
-    Hamiltonian H(hs);
+    HamiltonianFn H(hs);
 
-    auto V0 = [&,x=hs.x()](double phase){return (VectorXd) (400 * (1-0.5 * box(1 + cos(-2 * k * (x-phase)), x-phase, -PI/k/2, PI/k/2)));};
+    auto V0 = [&,x=hs.x()](double phase){return (RVec) (400 * (1 - 0.5 * (1 + cos(-2 * k * (x-phase))) * box(x-phase, -PI/k/2, PI/k/2)));};
+
     H.setV(V0);
 
-    auto H0 = H(0);
+    Hamiltonian H0 = H(0);
 
-    // auto eig = H.allEigs();
     auto eig = H0.spectrum(14);
+
+
+//  DONT USE EIGEN::VECTOR OR MATRIX AS RVEC/RMAT/CVEC/CMAT
+// USE SOMETHING LIKE QENGINE
+// Lets us define scalar+vector, scalar + matrix, cos, box, etc etc
+
+
 
 
     //Time evolution
@@ -33,7 +38,7 @@ int main()
 
     NB: NEED P TO BE 2*PI*fftshift(x)/(DX * DIM) before we p^2/2m ?!!!!!!
 
-    Evolution (T(x/p)=exp(-i*dt*P^2/2m),V(x)=exp(-i*dt*potential), options to be:
+    Evolution (T(x or p)=exp(-i*dt*P^2/2m),V(x)=exp(-i*dt*potential), options to be:
     - Split step
         V(x)/2 * IFFT{ T(p) * FFT{ V(x)/2 * PSI(x)
     - Matrix multiplication with T in x basis
@@ -48,18 +53,9 @@ int main()
     - Higher order error reduction
         Could help if we are doing lots of stepping and prebake P^2/2m(x)
         (https://www.asc.tuwien.ac.at/~winfried/splitting/index.php?rc=0&ab=pp-34-a-ab&name=PP%203/4%20A)
-    - Eigenstate evolution?
-        exp(-i E_n dt) . PSI(eigenbasis)
-        exp(-i H dt) . PSI(x)
-        I guess with fixed potential it might be useful
+
     */
 
-    // Printing the H/T/V matrices
-    
-    for(int i=0;i<eig.cols();i++){
-        Eigen::VectorXd vect = eig.col(i)(seq(0,Eigen::placeholders::last-1));
-        auto energy = eig(Eigen::placeholders::last,i);
-    }
 
     std::cout<<((std::chrono::system_clock::now()-start).count())/1e6<<" seconds: Ran "<<dim<<"x"<<dim<<std::endl;
 

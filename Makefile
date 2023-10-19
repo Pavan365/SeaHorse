@@ -10,6 +10,7 @@ FRAMEWORKS ?= -framework CoreVideo -framework IOKit -framework Cocoa -framework 
 # Using libs...
 IPATH += -I./libs
 IPATH += -I./libs/eigen
+IPATH += -I./include
 
 # If using fftw3...
 # We may or may not want this based on dimensions
@@ -28,18 +29,13 @@ OPTS += -ffp-contract=fast
 CC = gcc
 CXX = g++
 
-
-# RUNS AFTER MAKING SURE IT IS COMPILED AND UP TO DATE
-all: release
+# Defaults to main.cpp in release mode
+all: clean release
 	$(RUN) ./bin/release $(ARGS)
 
-# TIMES IN RELEASE MODE
-time: release
-	time ./bin/release $(ARGS)
-
-# Raylib testing
+# Graphical Interface
 gui:
-	$(CXX) $(FRAMEWORKS) $(STDS) $(WFLAGS) $(IPATH) ./libs/raylib/libraylib.a $@.cpp -g -o ./bin/$@
+	$(CXX) $(FRAMEWORKS) $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -O3 ./libs/raylib/libraylib.a $@.cpp -o ./bin/$@
 	$(RUN) ./bin/$@ $(ARGS)
 
 # NB: MUST BE [sources/objects] then [flags] then [output] OR LINKING FAILS
@@ -47,11 +43,6 @@ release: main.cpp Makefile
 	$(info ************  RELEASE VERSION ************)
 	$(CXX) main.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -O3 $(LPATH) $(LIBS) -o ./bin/$@
 
-# NB: MUST BE [sources/objects] then [flags] then [output] OR LINKING FAILS
-test: main.cpp Makefile
-	$(info ************   TEST VERSION   ************)
-	$(CXX) main.cpp $(STDS) $(DEFS) $(WFLAGS) $(IPATH) -O3 $(LPATH) $(LIBS) -o ./bin/$@
-	$(RUN) ./bin/$@ $(ARGS)
 # NB: MUST BE [sources/objects] then [flags] then [output] OR LINKING FAILS
 debug: main.cpp Makefile
 	$(info ************   DEBUG VERSION  ************)

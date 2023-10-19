@@ -12,40 +12,94 @@
  *
  **********************************************************************************************/
 
-#include "raylib/raylib.h"
-#define TEXT_SPACING_VALUE 0
-#include "include/renderers.cpp"
-#include "include/random.cpp"
+#include "seahorse.h"
 
+#include "raylib/raylib.h"
 #define RAYGUI_IMPLEMENTATION
 #include "raylib/raygui.h"
 #undef RAYGUI_IMPLEMENTATION
 
-#include <iostream>
+#define TEXT_SPACING_VALUE 0
+#include "Renderers.cpp"
 
 Font fontTtf;
 //----------------------------------------------------------------------------------
 // Useful Functions Implementation
 //----------------------------------------------------------------------------------
 #define QUIT() {CloseWindow();return 0;};
+void GenerateFontFile(std::string fontFile = "resources/UbuntuMonoBold.ttf"){
+    // Pull in file
+    int dataSize = 0;
+    unsigned char *fileData = LoadFileData(fontFile.c_str(), &dataSize);
+    // Redirect stdout to the new file
+    FILE *saved = stdout;
+    stdout = fopen((fontFile+".h").c_str(), "a");
 
-void setStyles(){
+    // Write data to file
+    printf("unsigned char text_txt_data[] = {");
+    for (auto i =0; i<dataSize;i++)
+    {
+        if (fileData[i]==0)
+        {
+            printf("0x00,");
+        }
+        else
+        {
+            printf("%#04x,",fileData[i]);
+        }
+    }
+    printf("};");
+
+    // Replace stdout
+    fclose(stdout);
+    stdout = saved;
+}
+void SetStyles(){
     GuiSetStyle(DEFAULT,LINE_COLOR,255);    // Black lines
 
-    fontTtf = LoadFontEx("UbuntuMonoBold.ttf",20,0,0);
+    // fontTtf = LoadFontEx("UbuntuMonoBold.ttf",20,0,0);
+
+    fontTtf = LoadFontFromMemory(".ttf",UbuntuMonoBold,(sizeof(UbuntuMonoBold)/sizeof(*UbuntuMonoBold)),20,0,0);
 
     GuiSetFont(fontTtf);
     GuiSetStyle(DEFAULT,TEXT_SIZE,15);
     GuiSetStyle(DEFAULT,TEXT_SPACING,TEXT_SPACING_VALUE);
 }
-//----------------------------------------------------------------------------------
-// Draw Functions Declaration
-//----------------------------------------------------------------------------------
 
 
-float screenWidth = 800;
-float screenHeight = 450;
+// Subscribing to this allows items to be forced to be redrawn if needed 
+Renderer renderer{};
 
+//------------------------------------------------------------------------------------
+// Button Functions
+//------------------------------------------------------------------------------------
+void CalcSpectrum(graph *plot, int num = 5)
+{
+    const int dim = 1<<10;
+
+    const auto k = sqrt(2);
+    const auto xlim = PI/k/2 * 3;
+    const auto depth = 400;
+
+    auto hs = HilbertSpace(dim,xlim);
+    HamiltonianFn H(hs);
+
+    auto V0 = [&,x=hs.x()](double phase){return depth * 0.5 * (1 - cos(2 * k * (x-phase)) * box(x-phase, -PI/k/2, PI/k/2));};
+
+    H.setV(V0);
+
+    Hamiltonian H0 = H(0);
+
+    auto eig = H0.spectrum(num);
+    const RVec x = hs.x();
+
+    plot->plot(x,V0(0),"Potential",BLACK);
+
+    for (auto i=0;i<eig.num;i++)
+    {
+        plot->plot(x,eig.eigenvector(i)*100+eig.eigenvalue(i),"",RED);
+    }
+}
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -56,34 +110,31 @@ int main()
     int screenWidth = 1280;
     int screenHeight = 720;
     int monitor = GetCurrentMonitor();
-    Renderer renderers = {};
 
     SetTraceLogLevel(LOG_WARNING);
 
     SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI  | FLAG_WINDOW_TOPMOST);
     InitWindow(screenWidth, screenHeight, "Control Panel");
     
+    SetStyles();
     SetExitKey(KEY_NULL);
-    setStyles();
-
     SetTargetFPS(30);
 
-    // EnableEventWaiting();
+    ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
     //--------------------------------------------------------------------------------------
 
-    ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
-
-    // These deal with their own re-rendering
+    // Monitors RAM/CPU/etc.
     PerfStats perfStats(0,0);
-    renderers.subscribe(&perfStats);
+    renderer.subscribe(&perfStats);
     
-    graph mainplot(Rectangle{150, 100, 600, 300},"position (nm)","Amplitude");
-    renderers.subscribe(&mainplot);
-    mainplot.plot(true);
+    graph mainplot(Rectangle{150, 100, 600, 300},"position (au)","Energy");
+    renderer.subscribe(&mainplot);
+    // mainplot.plot(true);
 
-    graph heatmapplot(Rectangle{150, 400, 600, 300},"position (nm)","Amplitude");
-    renderers.subscribe(&heatmapplot);
-    heatmapplot.heatmap();
+    // graph heatmapplot(Rectangle{150, 400, 600, 300},"position (nm)","Amplitude");
+    // renderer.subscribe(&heatmapplot);
+    // heatmapplot.setPadding(0,0);
+    // heatmapplot.heatmap();
 
     // Main loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
@@ -91,29 +142,6 @@ int main()
         // Update
         //----------------------------------------------------------------------------------
         perfStats.update();
-        //----------------------------------------------------------------------------------
-        // Draw
-        //----------------------------------------------------------------------------------
-        BeginDrawing();
-
-        // Check if we've invalidated the screen buffer and need to redraw
-        if(GetScreenHeight()!=screenHeight || GetScreenWidth()!=screenWidth || GetCurrentMonitor()!=monitor) {
-            renderers.draw();
-            screenHeight = GetScreenHeight();
-            screenWidth = GetScreenWidth();
-            monitor = GetCurrentMonitor();
-            std::cout<<"Needed to re-draw (Back Buffer invalidated)"<<std::endl;
-        }
-        
-        if(!IsWindowFocused()) GuiDisable(); else GuiEnable();
-
-        if ((IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) && IsKeyPressed(KEY_C)) QUIT();
-        if(IsKeyPressed(KEY_P)) {mainplot.plot(false);}
-        if (IsKeyPressed(KEY_Z)) {perfStats.toggle();}
-
-        GuiDummyRec(Rectangle{50,150,100,100},"Dummy");
-        GuiButton(Rectangle{50,250,100,100},"X");
-
         if (IsFileDropped()) {
             auto files = LoadDroppedFiles();
             for (auto i = 0; i<files.count;i++){
@@ -132,7 +160,25 @@ int main()
             }
             UnloadDroppedFiles(files);
         }
+        //----------------------------------------------------------------------------------
+        // Draw
+        //----------------------------------------------------------------------------------
+        BeginDrawing();
 
+        // Check if we've invalidated the screen buffer and need to redraw
+        if(GetScreenHeight()!=screenHeight || GetScreenWidth()!=screenWidth || GetCurrentMonitor()!=monitor) {
+            renderer.draw();
+            screenHeight = GetScreenHeight();
+            screenWidth = GetScreenWidth();
+            monitor = GetCurrentMonitor();
+        }
+        
+        if(!IsWindowFocused()) GuiDisable(); else GuiEnable();
+
+        if ((IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) && IsKeyPressed(KEY_C)) QUIT();
+        if (IsKeyPressed(KEY_Z)) {perfStats.toggle();}
+
+        if (GuiButton(Rectangle{50,250,100,100},"Plot Spectrum")) CalcSpectrum(&mainplot);
 
 
         EndDrawing();

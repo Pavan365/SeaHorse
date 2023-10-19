@@ -1,3 +1,6 @@
+#ifndef SEAHORSE_RANDOM
+#define SEAHORSE_RANDOM
+
 #include <random>
 
 uint64_t get_rand_seed()
@@ -23,7 +26,6 @@ struct randGen
     double operator()() {return dist(gen);}
 };
 
-#ifndef randGen
+
 randGen rands(0.0,1.0);
-#define randGen
-#endif
+#endif // SEAHORSE_RANDOM
