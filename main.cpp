@@ -4,15 +4,16 @@ int main()
 {
     std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
-    const int dim = 1<<11;
+    const int dim = 1 << 11;
 
     const auto k = sqrt(2);
-    const auto xlim = PI/k/2 * 3;
-
-    auto hs = HilbertSpace(dim,xlim);
+    const auto xlim = PI / k / 2 * 3;
+    
+    auto hs = HilbertSpace(dim, xlim);
     HamiltonianFn H(hs);
 
-    auto V0 = [&,x=hs.x()](double phase){return (RVec) (400 * (1 - 0.5 * (1 + cos(-2 * k * (x-phase))) * box(x-phase, -PI/k/2, PI/k/2)));};
+    const auto depth = 400;
+    auto V0 = [&, x = hs.x()](double phase){return - depth * 0.5 * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2);};
 
     H.setV(V0);
 
@@ -20,15 +21,11 @@ int main()
 
     auto eig = H0.spectrum(14);
 
+    //  DONT USE EIGEN::VECTOR OR MATRIX AS RVEC/RMAT/CVEC/CMAT
+    // USE SOMETHING LIKE QENGINE
+    // Lets us define scalar+vector, scalar + matrix, cos, box, etc etc
 
-//  DONT USE EIGEN::VECTOR OR MATRIX AS RVEC/RMAT/CVEC/CMAT
-// USE SOMETHING LIKE QENGINE
-// Lets us define scalar+vector, scalar + matrix, cos, box, etc etc
-
-
-
-
-    //Time evolution
+    // Time evolution
     /*
     Parallelise? calc V's before doing all the steps
     Or just build it into robustness checking evolutions
@@ -56,12 +53,7 @@ int main()
 
     */
 
-
-    std::cout<<((std::chrono::system_clock::now()-start).count())/1e6<<" seconds: Ran "<<dim<<"x"<<dim<<std::endl;
+    std::cout << ((std::chrono::system_clock::now() - start).count()) / 1e6 << " seconds: Ran " << dim << "x" << dim << std::endl;
 
     return 0;
 }
-
-
-
- 

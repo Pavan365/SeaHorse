@@ -7,22 +7,17 @@
 // Eigen
 // #include <fftw3.h>
 #include <eigen/Eigen/Core>
+#include <Eigen/SparseCore>
 #include <eigen/Eigen/Dense>
 // #include <eigen/unsupported/Eigen/FFT>
-
-// Spectra
-#include <spectra/SymEigsSolver.h>
-#include <spectra/MatOp/SparseSymMatProd.h>
 
 // Data
 #include "UbuntuMonoBold.h"
 constexpr double PI = 3.141592653589793116;
 
 // Seahorse
-#include "Random.cpp"
-#include "Vectors.cpp"
-#include "HilbertSpace.cpp"
-#include "Hamiltonian.cpp"
-
+#include "Random.h"
+#include "Vectors.h"
+#include "Hamiltonian.h"
 
 #endif // SEAHORSE_

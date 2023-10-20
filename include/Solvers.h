@@ -1,6 +1,6 @@
 #ifndef SEAHORSE_SOLVERS
 #define SEAHORSE_SOLVERS
-#include "Vectors.cpp"
+#include "Vectors.h"
 #include <iostream>
 #include <eigen/Eigen/Core>
 

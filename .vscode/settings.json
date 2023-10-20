@@ -89,7 +89,8 @@
         "nnls": "cpp",
         "queue": "cpp",
         "stack": "cpp",
-        "__tree": "cpp"
+        "__tree": "cpp",
+        "dense": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/g++",
     "cmake.sourceDirectory": "/Users/User/Library/Mobile Documents/com~apple~CloudDocs/Work/Physics/PhD/SeaHorse/libs/eigen/unsupported/test",

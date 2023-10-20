@@ -35,8 +35,7 @@ all: clean release
 
 # Graphical Interface
 gui:
-	$(CXX) $(FRAMEWORKS) $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -O3 ./libs/raylib/libraylib.a $@.cpp -o ./bin/$@
-	$(RUN) ./bin/$@ $(ARGS)
+	$(CXX) $(FRAMEWORKS) $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -O3 ./libs/raylib/libraylib.a $@.cpp -g -o ./bin/$@
 
 # NB: MUST BE [sources/objects] then [flags] then [output] OR LINKING FAILS
 release: main.cpp Makefile
