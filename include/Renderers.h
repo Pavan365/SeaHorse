@@ -591,6 +591,11 @@ public:
     {
         padding = Vector2{x, y};
     }
+    void clearLines()
+    {
+        lines.clear();
+        draw();
+    }
 
     void draw()
     {
