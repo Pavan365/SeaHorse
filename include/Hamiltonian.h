@@ -53,10 +53,8 @@ public:
     auto operator[](int i){
         if (i>=spectrum.numEigvs) // We have't already calculated enough states
         {
-            std::cout<<"We already have "<<spectrum.numEigvs<<" eigenvectors, but need "<<i<<"th"<<std::endl;
             // NB: i+1 as we zero index so the 0th is calcSpectrum(1)
             calcSpectrum(i+1);
-            std::cout<<"We now have "<<spectrum.numEigvs<<" eigenvectors"<<std::endl;
         }
         return spectrum.eigenvector(i);
     }
@@ -65,9 +63,7 @@ public:
     double eigenvalue(int i){
         if (i>=spectrum.numEigs) // We've only used calcSpectrum so haven't calculated enough eigenvalues so get all of them quickly
         {
-            std::cout<<"We already have "<<spectrum.numEigs<<" eigenvalues, but need "<<i<<"th"<<std::endl;
             calcEigenvalues();
-            std::cout<<"We now have "<<spectrum.numEigs<<" eigenvalues"<<std::endl;
         }
         return spectrum.eigenvalue(i);
     }
@@ -83,7 +79,7 @@ public:
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(diag.size());
         eigensolver.computeFromTridiagonal(diag, subdiag, Eigen::EigenvaluesOnly);
 
-        if (eigensolver.info() != Eigen::Success) std::cout << "Failed to calculate full spectrum";
+        if (eigensolver.info() != Eigen::Success) std::cerr << "Failed to calculate full spectrum";
 
         spectrum.eigenvalues = RVec(eigensolver.eigenvalues());
         spectrum.numEigs = spectrum.eigenvalues.size();
@@ -92,14 +88,12 @@ public:
     // Calculating the full spectrum of the matrix up to state `num`
     void calcSpectrum(int num)
     {
-        std::cout<<"Calculating "<<num<<" eigenvectors..."<<std::endl;
-
         // 'Spectra' implementation finds first 'num' eigenvalues/eigenvectors of a sparse symmetric matrix
         auto nev = std::max(std::min(num, (int)H.cols() - 1), 1);
         auto ncv = std::min(4 * num + 10, (int)H.cols());
 
         // Construct matrix operation object using the wrapper class SparseSymMatProd
-        static Spectra::SparseSymMatProd<double> op(H);
+        Spectra::SparseSymMatProd<double> op(H);
         // Construct eigen solver object, requesting the smallest 'num' eigenvalues
         Spectra::SymEigsSolver<Spectra::SparseSymMatProd<double>> eigs(op, nev, ncv);
         // Initialize and compute

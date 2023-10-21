@@ -66,35 +66,29 @@ Renderer renderer{};
 //------------------------------------------------------------------------------------
 void CalcSpectrum(graph *plot, int num = 10)
 {
-    const int dim = 1 << 10;
+    const int dim = 1 << 11;
 
     const auto k = sqrt(2);
     const auto xlim = PI / k / 2 * 3;
 
     auto hs = HilbertSpace(dim, xlim);
+    const RVec x = hs.x();
 
     const auto depth = 400;
 
-    auto V0 = [&, x = hs.x()](double phase){return -depth * 0.5 * (cos(2 * k * (x - phase)) + 1) * box(x + x - phase, -PI / k / 2, PI / k / 2);};
+    auto V0 = [&, x](double phase){return -0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2);};
 
     HamiltonianFn H(hs,V0);
 
+    plot->plot(x,V0(0),"Potential");
     Hamiltonian H0 = H(0);
-
-    RVec test = H0[0] + 3*H0[2];
-    RVec t2 = test + test;
-    RVec test2 = 3 * H0[0] + H0[2];
 
     H0.calcSpectrum(num);
 
-    const RVec x = hs.x();
-    
-    plot->plot(x,V0(0),"Potential");
+    RVec test = (2.0+3i) * H0[0];
+    // std::cout<<"complex "<<test<<std::endl;
 
-    for (auto i = 0; i < H0.spectrum.numEigvs; i++)
-    {
-        plot->plot(x, H0[i] * 100 + H0.eigenvalue(i), "Eigenvector "+std::to_string(i));
-    }
+    for (auto i = 0; i < H0.spectrum.numEigvs; i++)plot->plot(x, H0[i] * 100 + H0.eigenvalue(i), "Eigenvector "+std::to_string(i));
 }
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -185,7 +179,8 @@ int main()
         }
 
         if (GuiButton(Rectangle{50, 250, 100, 20}, "Plot Spectrum")) CalcSpectrum(&mainplot);
-        if (GuiButton(Rectangle{50, 220, 100, 20}, "SetLims()")) mainplot.setLims();
+        if (GuiButton(Rectangle{50, 220, 100, 20}, "Set lims.")) mainplot.setLims();
+        if (GuiButton(Rectangle{50, 190, 100, 20}, "Clear plot")) mainplot.clearLines();
 
         EndDrawing();
         //----------------------------------------------------------------------------------

@@ -3,6 +3,8 @@
 
 // standard libs
 #include <iostream>
+#include <complex>
+using namespace std::complex_literals;
 
 // Eigen
 // #include <fftw3.h>
