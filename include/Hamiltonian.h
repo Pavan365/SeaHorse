@@ -46,7 +46,7 @@ public:
     // Constructor
     Hamiltonian(HilbertSpace &hs, RVec V) : hs(hs), V(V), T(hs.T())
     {
-        H = T + V._vec.asDiagonal().toDenseMatrix().sparseView();
+        H = T + V.asDiagonal().toDenseMatrix().sparseView();
     }
 
     // Operator for obtaining eigenstates
@@ -73,7 +73,7 @@ public:
         // Finds all eigenvalues for the hamiltonian
         auto temp = T.toDense();
 
-        Eigen::VectorXd diag = temp.diagonal().array() + V._vec.array();
+        Eigen::VectorXd diag = temp.diagonal().array() + V.array();
         Eigen::VectorXd subdiag = temp.diagonal(1);
 
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(diag.size());

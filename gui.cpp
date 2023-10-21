@@ -66,7 +66,7 @@ Renderer renderer{};
 //------------------------------------------------------------------------------------
 void CalcSpectrum(graph *plot, int num = 10)
 {
-    const int dim = 1 << 11;
+    const int dim = 1 << 4;
 
     const auto k = sqrt(2);
     const auto xlim = PI / k / 2 * 3;
@@ -76,7 +76,8 @@ void CalcSpectrum(graph *plot, int num = 10)
 
     const auto depth = 400;
 
-    auto V0 = [&, x](double phase){return -0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2);};
+    // DO NOT USE AUTO HERE OR THE VECTOR DATA IS FREED INSIDE THE SCOPE!
+    std::function<RVec(double)> V0 = [&, x](double phase){return -0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2);};
 
     HamiltonianFn H(hs,V0);
 
@@ -88,50 +89,34 @@ void CalcSpectrum(graph *plot, int num = 10)
     for (auto i = 0; i < H0.spectrum.numEigvs; i++)plot->plot(x, H0[i] * 100 + H0.eigenvalue(i), "Eigenvector "+std::to_string(i));
 
 // TESTING
-    RVec rvec = H0[0];
-    CVec cvec = H0[0]*1i;
+    RVec rvec = RVec::Ones(10);
+    S_INFO("rvec: ",rvec);
+    // CVec cvec = H0[0]*2i;
 
-    // RVec -> CVec
+    CVec cvec = CVec(rvec.cast<std::complex<double>>());
+
+    S_INFO("cvec: ",cvec);
+
+    // CVec t0 = rvec + 0.1+1i;
+    // S_INFO("t0: ",t0);
+
     CVec t = rvec;
-
-    // RVec + double -> RVec
+    S_INFO("rvec: \n",rvec);
     RVec t1 = rvec + 5.6;
-    // RVec * double -> RVec
-    RVec t2 = rvec * 5.6;
-    // RVec + complex -> CVec
-    RVec t3 = rvec * 5.6;
-    // Rvec * complex -> CVec
-    CVec t4 = rvec * 5.6i;
+    S_INFO("t1: rvec + 5.6\n",t1);
 
-    // CVec + double -> CVec
+    // CVec t3 = rvec + 5.6i; //NO
+    // S_INFO("t3: rvec + 5.6i\n",t3);
+
     CVec t5 = cvec + 4.5;
-    // CVec * double -> CVec
-    CVec t6 = cvec * 4.5;
-    // CVec + complex -> CVec
-    CVec t7 = cvec + 4.5i;
-    // CVec * complex -> CVec
-    CVec t8 = cvec * 4.5i;
+    S_INFO("t5: cvec + 4.5\n",t5);
 
-    // RExpr + double -> RVec
-    RVec t9 = (rvec * 5.6) + 4.5;
-    // RExpr * double -> RVec
-    RVec t10 = (rvec * 5.6) * 4.5;
-    // RExpr + complex -> CVec
-    CVec t11 = (rvec * 5.6) + 4.5i;
-    // RExpr * complex -> CVec
-    CVec t12 = (rvec * 5.6) * 4.5i;
+    // CVec t7 = cvec + 4.5i;
+    // S_INFO("t7: cvec + 4.5i\n",t7);
 
-    // CExpr + double -> CVec
-    CVec t13 = (cvec * 5.6) + 4.5;
-    // CExpr * double -> CVec
-    CVec t14 = (cvec * 5.6) * 4.5;
-    // CExpr + complex -> CVec
-    CVec t15 = (cvec * 5.6) + 4.5i;
-    // CExpr * complex -> CVec
-    CVec t16 = (cvec * 5.6) * 4.5i;
-
-    // auto test = x*x*x;
-    // auto test = rvec + cvec;
+    // CVec test = x*x*x;
+    // S_INFO("test: x*x*x",test);
+    // auto test0 = rvec + cvec;
 
 }
 //------------------------------------------------------------------------------------

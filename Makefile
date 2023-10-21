@@ -1,5 +1,5 @@
 STDS ?= -std=c++17
-WFLAGS ?= -Wall -Wpedantic -Wno-deprecated-declarations
+WFLAGS ?= -Wall -Wpedantic -Wno-deprecated-declarations -Wno-format-security
 DEFS ?= 
 LIBS ?=
 IPATH ?=

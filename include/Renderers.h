@@ -7,7 +7,7 @@
 #include "raylib/raygui.h"
 #include "Globals.h"
 
-#define VEC_FROM_RVEC(v) std::vector<double>(v._vec.data(), v._vec.data() + v._vec.size())
+#define VEC_FROM_RVEC(v) std::vector<double>(v.data(), v.data() + v.size())
 #define VEC_VEC_FROM_EIGEN(m) ([](Eigen::MatrixXd z) {std::vector<std::vector<double>> m2; for(int i = 0; i<z.cols(); i++){m2.push_back(std::vector<double>(z.data()+i*z.rows(),z.data()+z.rows()*(i+1)));}; return m2; }(m))
 
 struct Renderer
