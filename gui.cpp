@@ -88,36 +88,6 @@ void CalcSpectrum(graph *plot, int num = 10)
 
     for (auto i = 0; i < H0.spectrum.numEigvs; i++)plot->plot(x, H0[i] * 100 + H0.eigenvalue(i), "Eigenvector "+std::to_string(i));
 
-// TESTING
-    RVec rvec = RVec::Ones(10);
-    S_INFO("rvec: ",rvec);
-    // CVec cvec = H0[0]*2i;
-
-    CVec cvec = CVec(rvec.cast<std::complex<double>>());
-
-    S_INFO("cvec: ",cvec);
-
-    // CVec t0 = rvec + 0.1+1i;
-    // S_INFO("t0: ",t0);
-
-    CVec t = rvec;
-    S_INFO("rvec: \n",rvec);
-    RVec t1 = rvec + 5.6;
-    S_INFO("t1: rvec + 5.6\n",t1);
-
-    // CVec t3 = rvec + 5.6i; //NO
-    // S_INFO("t3: rvec + 5.6i\n",t3);
-
-    CVec t5 = cvec + 4.5;
-    S_INFO("t5: cvec + 4.5\n",t5);
-
-    // CVec t7 = cvec + 4.5i;
-    // S_INFO("t7: cvec + 4.5i\n",t7);
-
-    // CVec test = x*x*x;
-    // S_INFO("test: x*x*x",test);
-    // auto test0 = rvec + cvec;
-
 }
 //------------------------------------------------------------------------------------
 // Program main entry point
