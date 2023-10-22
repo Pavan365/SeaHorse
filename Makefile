@@ -1,10 +1,9 @@
-STDS ?= -std=c++17
-WFLAGS ?= -Wall -Wpedantic -Wno-deprecated-declarations -Wno-format-security
+STDS ?= -std=c++20
+WFLAGS ?= -Wall -Wpedantic -Wno-deprecated-declarations -Wno-format-security -Wno-deprecated-enum-compare-conditional
 DEFS ?= 
 LIBS ?=
 IPATH ?=
 LPATH ?=
-OPTS ?=
 FRAMEWORKS ?= -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 
 # Using libs...
@@ -12,17 +11,19 @@ IPATH += -I./libs
 IPATH += -I./libs/eigen
 IPATH += -I./include
 
-# If using fftw3...
+# If using fftw3... This speeds up splitstep by a factor ~2
 # We may or may not want this based on dimensions
-# DEFS += -DEIGEN_FFTW_DEFAULT 
-# LIBS += -lfftw3 -lfftw3f -lfftw3l
+DEFS += -DEIGEN_FFTW_DEFAULT
+LIBS += -lfftw3 -lfftw3f -lfftw3l
+LPATH += -L/usr/local/lib
 
 # Release optimisation flags
+OPTS ?=
 OPTS += -fno-math-errno
 OPTS += -mavx2
 OPTS += -mfma
 OPTS += -march=native
-OPTS += -DNDEBUG
+DEFS += -DNDEBUG
 OPTS += -ffp-contract=fast
 
 # Compilers
@@ -35,7 +36,7 @@ all: clean release
 
 # Graphical Interface
 gui:
-	$(CXX) $(FRAMEWORKS) $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -O3 ./libs/raylib/libraylib.a $@.cpp -g -o ./bin/$@
+	$(CXX) $(FRAMEWORKS) $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -O3 $(LPATH) $(LIBS) ./libs/raylib/libraylib.a $@.cpp -g -o ./bin/$@
 
 # NB: MUST BE [sources/objects] then [flags] then [output] OR LINKING FAILS
 release: main.cpp Makefile

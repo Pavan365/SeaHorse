@@ -3,6 +3,7 @@
 
 // standard libs
 #include <iostream>
+#include <format>
 #include <complex>
 using namespace std::complex_literals;
 
@@ -15,11 +16,12 @@ using namespace std::complex_literals;
 
 // Data
 #include "UbuntuMonoBold.h"
-constexpr double PI = 3.141592653589793116;
 
 // Seahorse
+#include "Globals.h"
 #include "Random.h"
 #include "Vectors.h"
 #include "Hamiltonian.h"
+#include "Solvers.h"
 
 #endif // SEAHORSE_

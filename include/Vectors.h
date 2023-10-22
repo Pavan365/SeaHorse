@@ -4,27 +4,24 @@
 #ifndef SEAHORSE_VECTORS
 #define SEAHORSE_VECTORS
 
-using RVec = Eigen::VectorXd;
-using CVec = Eigen::VectorXcd;
-
 // Allow maths style notation on RVecs + doubles
 template <typename Derived>
-inline const auto operator+(const Eigen::MatrixBase<Derived> &v, double d) {S_INFO("RVec+d");return v.array() + static_cast<typename Derived::Scalar>(d);}
+inline const auto operator+(const Eigen::MatrixBase<Derived> &v, double d) {return v.array() + static_cast<typename Derived::Scalar>(d);}
 template <typename Derived>
-inline const auto operator+(double d, const Eigen::MatrixBase<Derived> &v) {S_INFO("d+RVec");return static_cast<typename Derived::Scalar>(d) + v.array();}
+inline const auto operator+(double d, const Eigen::MatrixBase<Derived> &v) {return static_cast<typename Derived::Scalar>(d) + v.array();}
 template <typename Derived>
-inline const auto operator-(double d, const Eigen::MatrixBase<Derived> &v) {S_INFO("d+RVec");return static_cast<typename Derived::Scalar>(d) - v.array();}
+inline const auto operator-(double d, const Eigen::MatrixBase<Derived> &v) {return static_cast<typename Derived::Scalar>(d) - v.array();}
 template <typename Derived>
-inline const auto operator-(const Eigen::MatrixBase<Derived> &v, double d) {S_INFO("d+RVec");return v.array() - static_cast<typename Derived::Scalar>(d);}
+inline const auto operator-(const Eigen::MatrixBase<Derived> &v, double d) {return v.array() - static_cast<typename Derived::Scalar>(d);}
 
 template <typename Derived>
-inline const auto operator+(const Eigen::MatrixBase<Derived> &v, std::complex<double> d) {S_INFO("RVec+d");return v.template cast<std::complex<double>>().array() + d;}
+inline const auto operator+(const Eigen::MatrixBase<Derived> &v, std::complex<double> d) {return v.template cast<std::complex<double>>().array() + d;}
 template <typename Derived>
-inline const auto operator+(std::complex<double> d, const Eigen::MatrixBase<Derived> &v) {S_INFO("d+RVec");return d + v.template cast<std::complex<double>>().array();}
+inline const auto operator+(std::complex<double> d, const Eigen::MatrixBase<Derived> &v) {return d + v.template cast<std::complex<double>>().array();}
 template <typename Derived>
-inline const auto operator-(std::complex<double> d, const Eigen::MatrixBase<Derived> &v) {S_INFO("d+RVec");return d - v.template cast<std::complex<double>>().array();}
+inline const auto operator-(std::complex<double> d, const Eigen::MatrixBase<Derived> &v) {return d - v.template cast<std::complex<double>>().array();}
 template <typename Derived>
-inline const auto operator-(const Eigen::MatrixBase<Derived> &v, std::complex<double> d) {S_INFO("d+RVec");return v.template cast<std::complex<double>>().array() - d;}
+inline const auto operator-(const Eigen::MatrixBase<Derived> &v, std::complex<double> d) {return v.template cast<std::complex<double>>().array() - d;}
 
 
 inline const auto exp(const RVec &v) { return v.array().exp(); }

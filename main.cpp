@@ -8,22 +8,20 @@ int main()
 
     const auto k = sqrt(2);
     const auto xlim = PI / k / 2 * 3;
-    
+
     auto hs = HilbertSpace(dim, xlim);
-    HamiltonianFn H(hs);
+    const RVec x = hs.x();
 
     const auto depth = 400;
-    auto V0 = [&, x = hs.x()](double phase){return - depth * 0.5 * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2);};
 
-    H.setV(V0);
+    // DO NOT USE AUTO HERE OR THE VECTOR DATA IS FREED INSIDE THE SCOPE!
+    std::function<RVec(double)> V0 = [&, x](double phase){return -0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2);};
 
+    HamiltonianFn H(hs,V0);
     Hamiltonian H0 = H(0);
 
-    auto eig = H0.spectrum(14);
+    H0.calcSpectrum(10);
 
-    //  DONT USE EIGEN::VECTOR OR MATRIX AS RVEC/RMAT/CVEC/CMAT
-    // USE SOMETHING LIKE QENGINE
-    // Lets us define scalar+vector, scalar + matrix, cos, box, etc etc
 
     // Time evolution
     /*
@@ -53,7 +51,7 @@ int main()
 
     */
 
-    std::cout << ((std::chrono::system_clock::now() - start).count()) / 1e6 << " seconds: Ran " << dim << "x" << dim << std::endl;
+   S_INFO(((std::chrono::system_clock::now() - start).count()) / 1e6, " seconds");
 
     return 0;
 }
