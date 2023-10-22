@@ -12,11 +12,7 @@ Font fontTtf;
 //----------------------------------------------------------------------------------
 // Useful Functions Implementation
 //----------------------------------------------------------------------------------
-#define QUIT()         \
-    {                  \
-        CloseWindow(); \
-        return 0;      \
-    };
+#define QUIT() { CloseWindow(); return 0; };
 void GenerateFontFile(std::string fontFile = "resources/UbuntuMonoBold.ttf")
 {
     // Pull in file
@@ -58,74 +54,72 @@ void SetStyles()
     GuiSetStyle(DEFAULT, TEXT_SPACING, TEXT_SPACING_VALUE);
 }
 
-// Subscribing to this allows items to be forced to be redrawn if needed
-Renderer renderer{};
-
 //------------------------------------------------------------------------------------
 // Button Functions
 //------------------------------------------------------------------------------------
-void CalcSpectrum(graph *plot, int num = 10)
+void plotSpectrum(graph& plot, RVec x, Hamiltonian& H0, int num)
 {
-    const int dim = 1 << 4;
+    plot.clearLines();
 
+    H0.calcSpectrum(num);
+    
+    plot.plot(x,H0.V,"Potential",BLACK,1,4,0);
+
+    double eig_scale = ((H0.eigenvalue(1)-H0.eigenvalue(0))/2)/(H0[0].maxCoeff());
+
+    for (auto i = 0; i < H0.spectrum.numEigvs; i++)
+    {
+        if (H0.eigenvalue(i) > 0) {break;} // only plot bound
+        plot.plot(x, H0[i] * eig_scale + H0.eigenvalue(i), "Eigenvector "+std::to_string(i));
+    }
+}
+
+//------------------------------------------------------------------------------------
+// Program main entry point
+//------------------------------------------------------------------------------------
+int main()
+{
+    // RAYGUI Initialization
+    //---------------------------------------------------------------------------------------
+    SetTraceLogLevel(LOG_WARNING);
+    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI | FLAG_WINDOW_TOPMOST);
+    InitWindow(1280, 720, "Control Panel");
+    SetStyles();
+    SetExitKey(KEY_NULL);
+    SetTargetFPS(30);
+    ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
+    //--------------------------------------------------------------------------------------
+    // MY Initialization
+    //---------------------------------------------------------------------------------------
+    PerfStats perfStats(0, 0);
+
+    graph mainplot(Rectangle{50, 50, 400, 600});
+    graph spaceplot(Rectangle{550, 50, 600, 295});
+    graph momplot(Rectangle{550, 355, 600, 295});
+
+    ADD_AUTO_REDRAW(&mainplot,&spaceplot,&momplot,&perfStats);
+
+    const int dim = 1 << 11;
     const auto k = sqrt(2);
-    const auto xlim = PI / k / 2 * 3;
+    const auto xlim = PI / k / 2 * 4;
+    const double dt = 0.001;
 
     auto hs = HilbertSpace(dim, xlim);
     const RVec x = hs.x();
-
     const auto depth = 400;
 
     // DO NOT USE AUTO HERE OR THE VECTOR DATA IS FREED INSIDE THE SCOPE!
     std::function<RVec(double)> V0 = [&, x](double phase){return -0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2);};
 
     HamiltonianFn H(hs,V0);
-
-    plot->plot(x,V0(0),"Potential");
     Hamiltonian H0 = H(0);
 
-    H0.calcSpectrum(num);
+    CVec psi_0 = H0[7];
+    SplitStepper stepper = SplitStepper(dt,H,psi_0);
 
-    for (auto i = 0; i < H0.spectrum.numEigvs; i++)plot->plot(x, H0[i] * 100 + H0.eigenvalue(i), "Eigenvector "+std::to_string(i));
-
-}
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
-int main()
-{
-    // Initialization
+    int numsteps = 1;
+    // GUI Loop
     //---------------------------------------------------------------------------------------
-    int screenWidth = 1280;
-    int screenHeight = 720;
-    int monitor = GetCurrentMonitor();
-
-    SetTraceLogLevel(LOG_WARNING);
-
-    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI | FLAG_WINDOW_TOPMOST);
-    InitWindow(screenWidth, screenHeight, "Control Panel");
-
-    SetStyles();
-    SetExitKey(KEY_NULL);
-    SetTargetFPS(30);
-
-    ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
-    //--------------------------------------------------------------------------------------
-
-    // Monitors RAM/CPU/etc.
-    PerfStats perfStats(0, 0);
-    renderer.subscribe(&perfStats);
-
-    graph mainplot(Rectangle{150, 100, 600, 300}, "position (au)", "Energy");
-    renderer.subscribe(&mainplot);
-    // mainplot.plot(true);
-
-    // graph heatmapplot(Rectangle{150, 400, 600, 300},"position (nm)","Amplitude");
-    // renderer.subscribe(&heatmapplot);
-    // heatmapplot.setPadding(0,0);
-    // heatmapplot.heatmap();
-
-    // Main loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
         // Update
@@ -157,29 +151,33 @@ int main()
         BeginDrawing();
 
         // Check if we've invalidated the screen buffer and need to redraw
-        if (GetScreenHeight() != screenHeight || GetScreenWidth() != screenWidth || GetCurrentMonitor() != monitor)
-        {
-            renderer.draw();
-            screenHeight = GetScreenHeight();
-            screenWidth = GetScreenWidth();
-            monitor = GetCurrentMonitor();
-        }
+        CHECK_REDRAW();
 
-        if (!IsWindowFocused())
-            GuiDisable();
-        else
-            GuiEnable();
+        if ((IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) && IsKeyPressed(KEY_C)) QUIT();
+        if (IsKeyPressed(KEY_Z)) { perfStats.toggle(); }
 
-        if ((IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) && IsKeyPressed(KEY_C))
-            QUIT();
-        if (IsKeyPressed(KEY_Z))
-        {
-            perfStats.toggle();
-        }
+        // mainplot buttons Rectangle {50, 50, 400, 600}
+        if (GuiButton(Rectangle{90, 660, 100, 20}, "Clear plot")) mainplot.clearLines();
+        if (GuiButton(Rectangle{200, 660, 100, 20}, "Set lims.")) mainplot.setLims();
+        if (GuiButton(Rectangle{310, 660, 100, 20}, "Plot Spectrum")) plotSpectrum(mainplot,x,H0,10);
 
-        if (GuiButton(Rectangle{50, 250, 100, 20}, "Plot Spectrum")) CalcSpectrum(&mainplot);
-        if (GuiButton(Rectangle{50, 220, 100, 20}, "Set lims.")) mainplot.setLims();
-        if (GuiButton(Rectangle{50, 190, 100, 20}, "Clear plot")) mainplot.clearLines();
+        // State plots
+        if (GuiButton(Rectangle{1160, 505, 100, 20}, "Clear plots")) {momplot.clearLines();spaceplot.clearLines();};
+        if (GuiButton(Rectangle{1160, 535, 100, 20}, "Set lims.")) {momplot.setLims();spaceplot.setLims();};
+
+        if (GuiButton(Rectangle{1160, 350, 100, 20}, "Show state")) {
+            spaceplot.clearLines();
+            spaceplot.plot(x,stepper.state().real(),"real",RED);
+            spaceplot.plot(x,stepper.state().imag(),"imag",BLUE);
+            spaceplot.plot(x,stepper.state().cwiseAbs2(),"abs2",BLACK);
+
+            momplot.plot(H.p,stepper.state_p().cwiseAbs2(),"abs2",BLACK);
+            momplot.clearLines();
+            };
+        if (GuiButton(Rectangle{1160, 380, 100, 20}, "Step (1)")) {stepper.step(0);};
+        if (GuiSpinner(Rectangle{1160, 410, 100, 20},"",&numsteps,1,10000,CheckCollisionPointRec(GetMousePosition(),{1160, 410, 100, 20}))){};
+        if (GuiButton(Rectangle{1160, 440, 100, 20}, ("Evolve ("+std::to_string(numsteps)+")").c_str())) {stepper.evolve(RVec::Zero(numsteps));};
+        if (GuiButton(Rectangle{1160, 470, 100, 20}, "Reset")) {stepper.reset();};
 
         EndDrawing();
         //----------------------------------------------------------------------------------
