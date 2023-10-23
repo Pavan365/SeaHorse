@@ -22,8 +22,8 @@ public:
     virtual void reset(CVec psi_0) = 0;
 
     // Evolve by a step or a number of steps and return the final wavefunction
-    virtual CVec step(double u) = 0;
-    virtual CVec evolve(RVec control) = 0;
+    virtual void step(double u) = 0;
+    virtual void evolve(RVec control) = 0;
 
     // Return the current state
     virtual CVec state() = 0;
@@ -55,6 +55,7 @@ public:
         _spacebuf = psi_0/psi_0.norm(); // initialise with starting state
         _fft.fwd(_mombuf,_spacebuf);
         _T_exp_2 = (-0.5i * dt * H.T_p.array()).exp();
+        // _T_exp = _T_exp_2.array().square(); uses e^2a = (e^a)^2 to avoid exp again
         _T_exp = (-1.0i * dt * H.T_p.array()).exp();
         n = psi_0.size();
     }
@@ -68,57 +69,58 @@ public:
         _spacebuf = _psi_0;
     }
     
-    CVec step(double u) // Move forward a single step
+    void step(double u) // Move forward a single step
     {
+        // check the fftw plan shit going on? profiler t2_32 seems to be linked to ffting (9% of time)
         _fft.fwd(_mombuf,_spacebuf);
-
-        // _mombuf.array()*= _T_exp_2.array();
         _mombuf = _mombuf.array().cwiseProduct(_T_exp_2.array()).matrix();
-
         _fft.inv(_spacebuf,_mombuf);
-
-        // _spacebuf.array()*= (-1.0i * _dt * _V(u).array()).exp().array();
         _spacebuf = _spacebuf.array().cwiseProduct((-1.0i * _dt * _V(u).array()).exp()).matrix();
         _fft.fwd(_mombuf,_spacebuf);
-
-        // _mombuf.array()*=_T_exp_2.array();
         _mombuf = _mombuf.array().cwiseProduct(_T_exp_2.array()).matrix();
-
         _fft.inv(_spacebuf,_mombuf);
-
-        return _spacebuf;
     }
 
-    CVec evolve(RVec control){
-        std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-        int n = control.size();
-
-        // First half step
-        _fft.fwd(_mombuf,_spacebuf);
-        // _mombuf.array()*=_T_exp_2.array();
-        _mombuf.array().cwiseProduct(_T_exp_2.array()).matrix();
-
-        // Loop through main chunk for all but the last control value
-        for (int i = 0; i < n - 1; i++){
+    // Slower to step but can save state data
+    void evolve(RVec control, std::function<void(CVec)> save_data){
+        for (double u : control) {
+             _fft.fwd(_mombuf,_spacebuf);
+            _mombuf = _mombuf.array().cwiseProduct(_T_exp_2.array()).matrix();
             _fft.inv(_spacebuf,_mombuf);
-            // NB this is expensive - can we cache it somehow?
-            // _spacebuf.array()*= (-1.0i * _dt * _V(control[i]).array()).exp().array();
-            _spacebuf.array().cwiseProduct((-1.0i * _dt * _V(control[i]).array()).exp()).matrix();
+            _spacebuf = _spacebuf.array().cwiseProduct((-1.0i * _dt * _V(u).array()).exp()).matrix();
             _fft.fwd(_mombuf,_spacebuf);
-            // _mombuf.array()*=_T_exp.array();
-            _mombuf.array().cwiseProduct(_T_exp.array()).matrix();
-        } 
-        // Finish the last loop
-        _fft.inv(_spacebuf,_mombuf);
-        // _spacebuf.array()*= (-1.0i * _dt * _V(control[n-1]).array()).exp().array();
-        _spacebuf.array().cwiseProduct((-1.0i * _dt * _V(control[n-1]).array()).exp()).matrix();
-        _fft.fwd(_mombuf,_spacebuf); 
-        // _mombuf.array()*=_T_exp_2.array();
-        _mombuf.array().cwiseProduct(_T_exp_2.array()).matrix();
-        _fft.inv(_spacebuf,_mombuf);
+            _mombuf = _mombuf.array().cwiseProduct(_T_exp_2.array()).matrix();
+            _fft.inv(_spacebuf,_mombuf);
 
-        S_INFO("Evolving for ",control.size()," steps: ",((std::chrono::system_clock::now() - start).count()) / 1e6, " seconds");
-        return _spacebuf;
+            save_data(_spacebuf);
+        }
+    }
+
+    // Optimised steps but can't provide intermediate step wavefunctions
+    // This combines T/2 ifft fft T/2 between steps to save computation.
+    void evolve(RVec control){
+        // Special treatment for the last component
+        double last = control[control.size()-1];
+        control.resize(control.size()-1);
+
+        // Initial half step T/2
+        _fft.fwd(_mombuf,_spacebuf);
+        _mombuf = _mombuf.array().cwiseProduct(_T_exp_2.array()).matrix();
+
+        // Main loop V,T full steps
+        for (double u : control) {
+            _fft.inv(_spacebuf,_mombuf);
+            _spacebuf = _spacebuf.array().cwiseProduct((-1.0i * _dt * _V(u).array()).exp()).matrix();
+            _fft.fwd(_mombuf,_spacebuf);
+            _mombuf = _mombuf.array().cwiseProduct(_T_exp.array()).matrix();
+        }
+
+        // Finishing out the last V,T/2
+        _fft.inv(_spacebuf,_mombuf);
+        _spacebuf = _spacebuf.array().cwiseProduct((-1.0i * _dt * _V(last).array()).exp()).matrix();
+        _fft.fwd(_mombuf,_spacebuf);
+        _mombuf = _mombuf.array().cwiseProduct(_T_exp_2.array()).matrix();
+        _fft.inv(_spacebuf,_mombuf);
     }
 
     CVec state() {return _spacebuf;}

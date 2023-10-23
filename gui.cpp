@@ -73,6 +73,19 @@ void plotSpectrum(graph& plot, RVec x, Hamiltonian& H0, int num)
         plot.plot(x, H0[i] * eig_scale + H0.eigenvalue(i), "Eigenvector "+std::to_string(i));
     }
 }
+void plotState(graph& spaceplot, graph& momplot, RVec x, SplitStepper& ss, HamiltonianFn& H)
+{
+    // refactor into function that has static lifetime of the lines and can thus update them:
+    spaceplot.clearLines();
+    spaceplot.plot(x,ss.state().real(),"Real",RED);
+
+    spaceplot.plot(x,ss.state().imag(),"Imag",BLUE);
+
+    spaceplot.plot(x,ss.state().cwiseAbs2(),"Abs2",BLACK);
+
+    momplot.clearLines();
+    momplot.plot(H.p,ss.state_p().cwiseAbs2(),"abs2",BLACK);
+}
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -108,6 +121,7 @@ int main()
     const RVec x = hs.x();
     const auto depth = 400;
 
+    // Optimisation for just translational potentials?
     // DO NOT USE AUTO HERE OR THE VECTOR DATA IS FREED INSIDE THE SCOPE!
     std::function<RVec(double)> V0 = [&, x](double phase){return -0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2);};
 
@@ -116,6 +130,7 @@ int main()
 
     CVec psi_0 = H0[7];
     SplitStepper stepper = SplitStepper(dt,H,psi_0);
+
 
     int numsteps = 1;
     // GUI Loop
@@ -151,7 +166,7 @@ int main()
         BeginDrawing();
 
         // Check if we've invalidated the screen buffer and need to redraw
-        CHECK_REDRAW();
+        AUTO_REDRAW();
 
         if ((IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) && IsKeyPressed(KEY_C)) QUIT();
         if (IsKeyPressed(KEY_Z)) { perfStats.toggle(); }
@@ -165,18 +180,10 @@ int main()
         if (GuiButton(Rectangle{1160, 505, 100, 20}, "Clear plots")) {momplot.clearLines();spaceplot.clearLines();};
         if (GuiButton(Rectangle{1160, 535, 100, 20}, "Set lims.")) {momplot.setLims();spaceplot.setLims();};
 
-        if (GuiButton(Rectangle{1160, 350, 100, 20}, "Show state")) {
-            spaceplot.clearLines();
-            spaceplot.plot(x,stepper.state().real(),"real",RED);
-            spaceplot.plot(x,stepper.state().imag(),"imag",BLUE);
-            spaceplot.plot(x,stepper.state().cwiseAbs2(),"abs2",BLACK);
-
-            momplot.plot(H.p,stepper.state_p().cwiseAbs2(),"abs2",BLACK);
-            momplot.clearLines();
-            };
-        if (GuiButton(Rectangle{1160, 380, 100, 20}, "Step (1)")) {stepper.step(0);};
+        if (GuiButton(Rectangle{1160, 350, 100, 20}, "Show state")) {plotState(spaceplot,momplot,x,stepper,H);};
+        if (GuiButton(Rectangle{1160, 380, 100, 20}, "Step (1)")) {stepper.step(0);plotState(spaceplot,momplot,x,stepper,H);};
         if (GuiSpinner(Rectangle{1160, 410, 100, 20},"",&numsteps,1,10000,CheckCollisionPointRec(GetMousePosition(),{1160, 410, 100, 20}))){};
-        if (GuiButton(Rectangle{1160, 440, 100, 20}, ("Evolve ("+std::to_string(numsteps)+")").c_str())) {stepper.evolve(RVec::Zero(numsteps));};
+        if (GuiButton(Rectangle{1160, 440, 100, 20}, ("Evolve ("+std::to_string(numsteps)+")").c_str())) {stepper.evolve(RVec::Zero(numsteps));plotState(spaceplot,momplot,x,stepper,H);};
         if (GuiButton(Rectangle{1160, 470, 100, 20}, "Reset")) {stepper.reset();};
 
         EndDrawing();

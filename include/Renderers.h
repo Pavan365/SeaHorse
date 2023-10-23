@@ -8,7 +8,7 @@
 #include "Globals.h"
 
 #define ADD_AUTO_REDRAW(...) auto_redraw.subscribe({__VA_ARGS__});
-#define CHECK_REDRAW() auto_redraw.check();
+#define AUTO_REDRAW() auto_redraw.check();
 
 #define VEC_FROM_RVEC(v) std::vector<double>(v.data(), v.data() + v.size())
 #define VEC_VEC_FROM_EIGEN(m) ([](Eigen::MatrixXd z) {std::vector<std::vector<double>> m2; for(int i = 0; i<z.cols(); i++){m2.push_back(std::vector<double>(z.data()+i*z.rows(),z.data()+z.rows()*(i+1)));}; return m2; }(m))
@@ -27,6 +27,7 @@ struct AutoRedraw
     int monitor = GetCurrentMonitor();
     int screenHeight = GetScreenHeight();
     int screenWidth = GetScreenWidth();
+    AutoRedraw() {S_ERROR("Autoredraw clean outside our area is not implemented...");}
     // Lets renderers subscribe themselves to this manager to re-draw them when needed
     void subscribe(Renderer *r)
     {
@@ -47,11 +48,14 @@ struct AutoRedraw
     void check(){
         if (GetScreenHeight() != screenHeight || GetScreenWidth() != screenWidth || GetCurrentMonitor() != monitor)
         {
-            
             draw();
             screenHeight = GetScreenHeight();
             screenWidth = GetScreenWidth();
             monitor = GetCurrentMonitor();
+        }
+        else
+        {
+            // Draw rectangles of background color everywhere our subscribers aren't
         }
     }
 };
@@ -177,15 +181,16 @@ public:
     }
 };
 
+struct graph; // forward declare
 struct graphData
 {
     // General graph data, specialises to line/heatmap etc
 
     // Constructor
-    graphData(Color c, std::string n, double a) : color(c), name(n), alpha(a) {}
+    graphData(graph* owner, Color c, std::string n, double a) : owner(owner), color(c), name(n), alpha(a) {}
     // Destructor
     virtual ~graphData() = default;
-
+    graph* owner; // callback to redraw the plot
 public:
     Color color;
     std::string name;
@@ -194,6 +199,7 @@ public:
     float lims[4] = {0, 1, 0, 1}; // {lims[0],lims[1],lims[2],lims[3]}
 
     virtual void setLims() = 0;
+    void drawOwner(); // as it accesses graph's member function draw() we forward declare and define later
     virtual void draw(Rectangle inside_bounds, double plot_lims[4]) = 0;
 };
 
@@ -206,7 +212,7 @@ struct graphLine : graphData
     double lineWidth = 2;
 
     // Constructor
-    graphLine(std::vector<double> x, std::vector<double> y, std::string n, Color c, double alpha, double lineWidth, double pointRadius) : graphData(c, n, alpha)
+    graphLine(graph* owner, std::vector<double> x, std::vector<double> y, std::string n, Color c, double alpha, double lineWidth, double pointRadius) : graphData(owner,c, n, alpha)
     {
         if (x.size() != 0)
         {
@@ -253,6 +259,16 @@ public:
     }
 
     inline size_t len() { return xData.size(); }
+    void updateYData(std::vector<double> y)
+    {
+        if (y.size() != yData.size())
+        {
+            S_ERROR("Non-matching sizes in data for graph (",name,"): ",yData.size()," != ",y.size());
+        }
+        yData = y;
+        setLims();
+    }
+    void updateYData(RVec y) {updateYData(VEC_FROM_RVEC(y));}
     void updateData(std::vector<double> x, std::vector<double> y)
     {
         if (x.size() != y.size())
@@ -260,10 +276,11 @@ public:
             S_ERROR("Non-matching sizes in data for graph (",name,"): ",x.size()," != ",y.size());
         }
         // Updates the underlying data and subsequently the limits
-        yData = x;
-        xData = y;
+        yData = y;
+        xData = x;
         setLims();
     }
+    void updateData(RVec x, RVec y) {updateData(VEC_FROM_RVEC(x),VEC_FROM_RVEC(y));}
     void appendPoint(double x, double y)
     {
         xData.push_back(x);
@@ -277,23 +294,18 @@ public:
             lims[2] = y;
         if (y > lims[3])
             lims[3] = y;
+        drawOwner();
     }
     void setLims()
     {
-        if (xData.size() == 0)
-        {
-            return;
-        };
-        if (yData.size() == 0)
-        {
-            return;
-        };
+        if (xData.size() == 0 || yData.size() == 0) {drawOwner();return;};
         const auto [x0, x1] = std::minmax_element(begin(xData), end(xData));
         const auto [y0, y1] = std::minmax_element(begin(yData), end(yData));
         lims[0] = (*x0);
         lims[1] = (*x1);
         lims[2] = (*y0);
         lims[3] = (*y1);
+        drawOwner();
     }
 };
 
@@ -307,7 +319,7 @@ struct graphHeatmap : graphData
     Color color2;
 
     // Constructor
-    graphHeatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z, std::string n, Color c, Color c2, double alpha = 1) : graphData(c, n,alpha), xData(x), yData(y), zData(z), color2(c2)
+    graphHeatmap(graph* owner, std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z, std::string n, Color c, Color c2, double alpha = 1) : graphData(owner, c, n,alpha), xData(x), yData(y), zData(z), color2(c2)
     {
         setLims();
     }
@@ -344,15 +356,17 @@ public:
         zData = z;
         setLims();
     }
-    void updateData(std::vector<std::vector<double>> z)
+    void updateZData(std::vector<std::vector<double>> z)
     {
         // Updates the underlying data and subsequently the limits
         zData = z;
+        setLims();
     }
     void setLims()
     {
         if (xData.size() == 0 || yData.size() == 0)
         {
+            drawOwner();
             return;
         };
         const auto [x0, x1] = std::minmax_element(begin(xData), end(xData));
@@ -361,6 +375,7 @@ public:
         lims[1] = (*x1);
         lims[2] = (*y0);
         lims[3] = (*y1);
+        drawOwner();
     }
 };
 
@@ -475,11 +490,11 @@ private:
 public:
     auto plot(std::vector<double> x, std::vector<double> y, std::string name, Color color, double alpha = 1, double lineWidth = 2, double pointRadius = 0)
     {
-        lines.push_back(std::make_shared<graphLine>(x, y, name, color, alpha, lineWidth, pointRadius));
+        lines.push_back(std::make_shared<graphLine>(this, x, y, name, color, alpha, lineWidth, pointRadius));
         if (lines.size() == 1)
             setLims(); // set lims if we've added the first line
         draw();
-        return lines.back();
+        return std::dynamic_pointer_cast<graphLine>(lines.back());
     }
     auto plot(std::vector<double> x, std::vector<double> y, std::string n) { return plot(x, y, n, nextColor()); }
     auto plot(std::vector<double> x, std::vector<double> y) { return plot(x, y, "", nextColor()); }
@@ -489,11 +504,11 @@ public:
 
     auto heatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z, std::string n, Color c, Color c2)
     {
-        lines.push_back(std::make_shared<graphHeatmap>(x, y, z, n, c, c2));
+        lines.push_back(std::make_shared<graphHeatmap>(this, x, y, z, n, c, c2));
         if (lines.size() == 1)
             setLims(); // set lims if we've added the first line
         draw();
-        return lines.back();
+        return std::dynamic_pointer_cast<graphHeatmap>(lines.back());
     }
     auto heatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z) { return heatmap(x, y, z, "", BLUE, PURPLE); }
     auto heatmap(std::vector<std::vector<double>> z) { return heatmap(std::vector<double>(0, 1), std::vector<double>(0, 1), z); }
@@ -730,4 +745,9 @@ public:
     }
 };
 
+// Delayed definition when graph->draw() is complete
+void graphData::drawOwner()
+{
+    owner->draw();
+}
 #endif // SEAHORSE_RENDERERS

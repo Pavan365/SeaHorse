@@ -1,5 +1,5 @@
 STDS ?= -std=c++20
-WFLAGS ?= -Wall -Wpedantic -Wno-deprecated-declarations -Wno-format-security -Wno-deprecated-enum-compare-conditional
+WFLAGS ?= -Wall -Wpedantic -Wno-deprecated-declarations -Wno-format-security -Wno-deprecated-enum-compare-conditional -Wno-deprecated-anon-enum-enum-conversion
 DEFS ?= 
 LIBS ?=
 IPATH ?=
@@ -41,7 +41,7 @@ gui:
 # NB: MUST BE [sources/objects] then [flags] then [output] OR LINKING FAILS
 release: main.cpp Makefile
 	$(info ************  RELEASE VERSION ************)
-	$(CXX) main.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -O3 $(LPATH) $(LIBS) -o ./bin/$@
+	$(CXX) main.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -O3 $(LPATH) $(LIBS) -g -o ./bin/$@
 
 # NB: MUST BE [sources/objects] then [flags] then [output] OR LINKING FAILS
 debug: main.cpp Makefile
