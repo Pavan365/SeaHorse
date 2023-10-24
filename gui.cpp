@@ -1,5 +1,4 @@
 #include "libs/seahorse/seahorse.h"
-// #include "libs/seahorse/src.//seahorse.cpp"
 
 #include "raylib/raylib.h"
 #include "raylib/raygui.h"

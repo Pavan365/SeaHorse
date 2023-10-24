@@ -5,7 +5,7 @@
 #include <eigen/Eigen/Dense>
 #include <Eigen/SparseCore>
 
-#define PI 3.141592653589793238462643383279502884197169399375105820974944592307816406L
+static constexpr double PI = 3.141592653589793116;
 using namespace std::complex_literals;
 
 using RVec = Eigen::VectorXd;

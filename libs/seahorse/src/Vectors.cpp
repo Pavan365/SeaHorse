@@ -1,3 +1,8 @@
+/*
+    NOTE: Because we need to use this as both declaration and definitions everything must
+    be static/inline to prevent the symbols being duplicated when linking againts libseahorse.
+*/
+
 #pragma once
 #include "Globals.cpp"
 

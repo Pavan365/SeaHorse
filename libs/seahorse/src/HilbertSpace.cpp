@@ -2,8 +2,6 @@
 
 #include "seahorse/include/HilbertSpace.h"
 
-#include "seahorse/src/Vectors.cpp"
-
 // Constructors
 HilbertSpace::HilbertSpace(int dim, double xmin, double xmax) : m_x(Eigen::VectorXd::LinSpaced(dim, xmin, xmax)), m_dx(m_x[1] - m_x[0]), m_dim(dim)
 {

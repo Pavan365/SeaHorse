@@ -19,9 +19,10 @@ LIBS += -lfftw3 -lfftw3f -lfftw3l
 LPATH += -L/usr/local/lib
 
 # Release optimisation flags
-OPTS := -O3
-OPTS += -mavx2 -mfma -march=native -ffp-contract=fast -fno-math-errno
-# OPTS += -ffast-math
+OPTS := -Ofast
+OPTS += -mavx2 -mfma -march=native 
+OPTS += -ffp-contract=fast -fno-math-errno 
+# OPTS += -ffast-math -funsafe-math-optimizations # potentially wrong results - check?
 DEFS += -DNDEBUG
 
 # Compilers
@@ -62,3 +63,4 @@ libs/seahorse/libseahorse.a : $(shell find ./libs/seahorse -type f ! -name libse
 # Clean up any executables
 clean:
 	@ rm -rf ./bin/*
+	@ rm libs/seahorse/libseahorse.a
