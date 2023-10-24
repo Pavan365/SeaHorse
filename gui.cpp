@@ -1,18 +1,17 @@
-#include "include/seahorse.h"
+#include "libs/seahorse/seahorse.h"
+// #include "libs/seahorse/src.//seahorse.cpp"
 
 #include "raylib/raylib.h"
-#define RAYGUI_IMPLEMENTATION
 #include "raylib/raygui.h"
-#undef RAYGUI_IMPLEMENTATION
+
 
 #define TEXT_SPACING_VALUE 0
-#include "Renderers.h"
+#include "GuiComponents.cpp"
 
 Font fontTtf;
 //----------------------------------------------------------------------------------
 // Useful Functions Implementation
 //----------------------------------------------------------------------------------
-#define QUIT() { CloseWindow(); return 0; };
 void GenerateFontFile(std::string fontFile = "resources/UbuntuMonoBold.ttf")
 {
     // Pull in file
@@ -69,22 +68,31 @@ void plotSpectrum(graph& plot, RVec x, Hamiltonian& H0, int num)
 
     for (auto i = 0; i < H0.spectrum.numEigvs; i++)
     {
-        if (H0.eigenvalue(i) > 0) {break;} // only plot bound
+        if (H0.eigenvalue(i) > 0) {break;} // only plot bound states
         plot.plot(x, H0[i] * eig_scale + H0.eigenvalue(i), "Eigenvector "+std::to_string(i));
     }
 }
 void plotState(graph& spaceplot, graph& momplot, RVec x, SplitStepper& ss, HamiltonianFn& H)
 {
-    // refactor into function that has static lifetime of the lines and can thus update them:
-    spaceplot.clearLines();
-    spaceplot.plot(x,ss.state().real(),"Real",RED);
+    static auto realline = spaceplot.plot(x,ss.state().real(),"Real",RED);
+    // If we are the only holders of the pointer the line is deleted so replot
+    if (realline.use_count()==1) {realline = spaceplot.plot(x,ss.state().real(),"Real",RED);}
+    realline->updateYData(ss.state().real());
 
-    spaceplot.plot(x,ss.state().imag(),"Imag",BLUE);
+    static auto imagline = spaceplot.plot(x,ss.state().imag(),"Imag",BLUE);
+    // If we are the only holders of the pointer the line is deleted so replot
+    if (imagline.use_count()==1) {imagline = spaceplot.plot(x,ss.state().imag(),"Imag",BLUE);} 
+    imagline->updateYData(ss.state().imag());
 
-    spaceplot.plot(x,ss.state().cwiseAbs2(),"Abs2",BLACK);
+    static auto absline = spaceplot.plot(x,ss.state().cwiseAbs2(),"Abs2",BLACK);
+    // If we are the only holders of the pointer the line is deleted so replot
+    if (absline.use_count()==1) {absline = spaceplot.plot(x,ss.state().cwiseAbs2(),"Abs2",BLACK);} 
+    absline->updateYData(ss.state().cwiseAbs2());
 
-    momplot.clearLines();
-    momplot.plot(H.p,ss.state_p().cwiseAbs2(),"abs2",BLACK);
+    static auto momline = momplot.plot(H.p,ss.state_p().cwiseAbs2(),"Abs2",BLACK);
+    // If we are the only holders of the pointer the line is deleted so replot
+    if (momline.use_count()==1) {momline = momplot.plot(H.p,ss.state_p().cwiseAbs2(),"Abs2",BLACK);} 
+    momline->updateYData(ss.state_p().cwiseAbs2());
 }
 
 //------------------------------------------------------------------------------------
@@ -101,6 +109,7 @@ int main()
     SetExitKey(KEY_NULL);
     SetTargetFPS(30);
     ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
+    // EnableEventWaiting();
     //--------------------------------------------------------------------------------------
     // MY Initialization
     //---------------------------------------------------------------------------------------
@@ -109,9 +118,11 @@ int main()
     graph mainplot(Rectangle{50, 50, 400, 600});
     graph spaceplot(Rectangle{550, 50, 600, 295});
     graph momplot(Rectangle{550, 355, 600, 295});
-
     ADD_AUTO_REDRAW(&mainplot,&spaceplot,&momplot,&perfStats);
 
+    //--------------------------------------------------------------------------------------
+    // Main code
+    //---------------------------------------------------------------------------------------
     const int dim = 1 << 11;
     const auto k = sqrt(2);
     const auto xlim = PI / k / 2 * 4;
@@ -128,14 +139,15 @@ int main()
     HamiltonianFn H(hs,V0);
     Hamiltonian H0 = H(0);
 
-    CVec psi_0 = H0[7];
+    CVec psi_0 = H0[0];
     SplitStepper stepper = SplitStepper(dt,H,psi_0);
 
-
     int numsteps = 1;
+
+    //--------------------------------------------------------------------------------------
     // GUI Loop
     //---------------------------------------------------------------------------------------
-    while (!WindowShouldClose()) // Detect window close button or ESC key
+    while (!WindowShouldClose()) // Detect window close button
     {
         // Update
         //----------------------------------------------------------------------------------
@@ -168,7 +180,7 @@ int main()
         // Check if we've invalidated the screen buffer and need to redraw
         AUTO_REDRAW();
 
-        if ((IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) && IsKeyPressed(KEY_C)) QUIT();
+        if ((IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) && IsKeyPressed(KEY_C)) {CloseWindow(); return 0;}
         if (IsKeyPressed(KEY_Z)) { perfStats.toggle(); }
 
         // mainplot buttons Rectangle {50, 50, 400, 600}
