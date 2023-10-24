@@ -1,10 +1,9 @@
-#include <eigen/Eigen/Core>
-#include <complex>
-#include "Globals.h"
-#ifndef SEAHORSE_VECTORS
-#define SEAHORSE_VECTORS
+#pragma once
+#include "Globals.cpp"
 
-// Allow maths style notation on RVecs + doubles
+// Allow maths style notation on real/complex Vecs + Scalars
+// We promote the type to complex only where needed
+// This is done by casting to the Vector's type when adding doubles but casting the vectors to complex when adding complex
 template <typename Derived>
 inline const auto operator+(const Eigen::MatrixBase<Derived> &v, double d) {return v.array() + static_cast<typename Derived::Scalar>(d);}
 template <typename Derived>
@@ -13,7 +12,6 @@ template <typename Derived>
 inline const auto operator-(double d, const Eigen::MatrixBase<Derived> &v) {return static_cast<typename Derived::Scalar>(d) - v.array();}
 template <typename Derived>
 inline const auto operator-(const Eigen::MatrixBase<Derived> &v, double d) {return v.array() - static_cast<typename Derived::Scalar>(d);}
-
 template <typename Derived>
 inline const auto operator+(const Eigen::MatrixBase<Derived> &v, std::complex<double> d) {return v.template cast<std::complex<double>>().array() + d;}
 template <typename Derived>
@@ -32,10 +30,7 @@ inline const auto abs2(const CVec &v) { return v.array().abs2(); }
 // These only really make sense on the Reals
 inline const auto cos(const RVec &v) { return v.array().cos(); }
 inline const auto sin(const RVec &v) { return v.array().sin(); }
-const auto box(const RVec &x, double min, double max)
+inline const auto box(const RVec &x, double min, double max)
 {
     return (x.array().cwiseLess(max).cast<double>() + x.array().cwiseGreater(min).cast<double>()) - 1;
 }
-
-
-#endif // SEAHORSE_VECTORS

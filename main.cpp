@@ -1,4 +1,5 @@
-#include "seahorse.h"
+#include "libs/seahorse/seahorse.h"
+// #include "libs/seahorse/src/seahorse.cpp"
 
 int main()
 {
@@ -13,8 +14,9 @@ int main()
     const RVec x = hs.x();
     const auto depth = 400;
 
-    // DO NOT USE AUTO HERE OR THE VECTOR DATA IS FREED INSIDE THE SCOPE!
-    std::function<RVec(double)> V0 = [&, x](double phase){return -0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2);};
+    // // DO NOT USE AUTO HERE OR THE VECTOR DATA IS FREED INSIDE THE SCOPE!
+    // std::function<RVec(double)> V0 = [&, x](double phase){return -0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2);};
+    std::function<RVec(double)> V0 = [&, x](double phase){return -0.5 * depth * (cos(2 * k * (x - phase)) + 1) ;};
 
     HamiltonianFn H(hs,V0);
     Hamiltonian H0 = H(0);
@@ -23,8 +25,8 @@ int main()
     SplitStepper stepper = SplitStepper(dt,H,psi_0);
 
     stepper.evolve(RVec::Zero(1e4));
-
-   S_INFO(((std::chrono::system_clock::now() - start).count()) / 1e6, " seconds");
+    S_ERROR("CHANGED CODE");
+    S_INFO(((std::chrono::system_clock::now() - start).count()) / 1e6, " seconds");
 
     return 0;
 }

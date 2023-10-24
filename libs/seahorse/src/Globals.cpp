@@ -1,7 +1,12 @@
-#ifndef SEAHORSE_GLOBALS
-#define SEAHORSE_GLOBALS
+#pragma once
+#include <iostream>
+#include <complex>
+#include <eigen/Eigen/Core>
+#include <eigen/Eigen/Dense>
+#include <Eigen/SparseCore>
 
 #define PI 3.141592653589793238462643383279502884197169399375105820974944592307816406L
+using namespace std::complex_literals;
 
 using RVec = Eigen::VectorXd;
 using CVec = Eigen::VectorXcd;
@@ -10,7 +15,7 @@ using CVec = Eigen::VectorXcd;
 
 #define S_INFO(...) S_LOG_IMPL("\033[92m[INFO]\033[0m ", __LINE__, __FILE__, __VA_ARGS__)
 #define S_ERROR(...) S_LOG_IMPL("\033[91m[ERROR]\033[0m", __LINE__, __FILE__, __VA_ARGS__)
-#define S_FATAL(...) {S_LOG_IMPL("\033[91m[FATAL]\033[0m", __LINE__, __FILE__, __VA_ARGS__); exit(EXIT_FAILURE);}
+#define S_FATAL(...) {S_LOG_IMPL("\033[91m[FATAL]", __LINE__, __FILE__, __VA_ARGS__); exit(EXIT_FAILURE);}
 
 template <typename ...Args>
 void S_LOG_IMPL(const char* type, int line, const char* fileName, Args&& ...args) {
@@ -20,6 +25,3 @@ void S_LOG_IMPL(const char* type, int line, const char* fileName, Args&& ...args
 
     printf(stream.str().c_str());
 }
-
-
-#endif // SEAHORSE_GLOBALS

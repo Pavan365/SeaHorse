@@ -1,11 +1,13 @@
-#ifndef SEAHORSE_RENDERERS
-#define SEAHORSE_RENDERERS
+#pragma once
 
 #include <thread>
 #include <unistd.h>
 #include <iomanip>
 #include "raylib/raygui.h"
-#include "Globals.h"
+#include "seahorse/src/Globals.cpp"
+
+// Data
+#include "../resources/UbuntuMonoBold.h"
 
 #define ADD_AUTO_REDRAW(...) auto_redraw.subscribe({__VA_ARGS__});
 #define AUTO_REDRAW() auto_redraw.check();
@@ -16,6 +18,8 @@
 struct AutoRedraw; // forward declaration
 struct Renderer
 {
+    Rectangle bounds{0, 0, 0, 0};
+    Renderer(Rectangle bounds) : bounds(bounds){}
     virtual void draw() = 0;
     AutoRedraw *manager; // who controls our redrawing
 };
@@ -46,17 +50,18 @@ struct AutoRedraw
         }
     }
     void check(){
-        if (GetScreenHeight() != screenHeight || GetScreenWidth() != screenWidth || GetCurrentMonitor() != monitor)
-        {
+        // if (GetScreenHeight() != screenHeight || GetScreenWidth() != screenWidth || GetCurrentMonitor() != monitor)
+        // {
             draw();
-            screenHeight = GetScreenHeight();
-            screenWidth = GetScreenWidth();
-            monitor = GetCurrentMonitor();
-        }
-        else
-        {
-            // Draw rectangles of background color everywhere our subscribers aren't
-        }
+        //     screenHeight = GetScreenHeight();
+        //     screenWidth = GetScreenWidth();
+        //     monitor = GetCurrentMonitor();
+        // }
+        // else
+        // {
+        //     // Draw rectangles of background color everywhere our subscribers aren't
+        //     // Or draw everything to a buffer and then draw that after clear each frame?
+        // }
     }
 };
 AutoRedraw auto_redraw{}; // Global struct
@@ -73,8 +78,6 @@ private:
     double pcpu, rssGB;
     std::chrono::system_clock::time_point time;
     char statscommand[1024];
-
-    Rectangle bounds{0, 0, 0, 0};
 
     // Execute command through pipe
     std::string exec(const char *cmd)
@@ -93,7 +96,7 @@ private:
 
 public:
     // Constructor
-    PerfStats(int posX, int posY) : bounds(Rectangle{(float)posX, (float)posY, 0, 0})
+    PerfStats(int posX, int posY) : Renderer(Rectangle{(float)posX, (float)posY, 0, 0})
     {
         PerfStats::time = std::chrono::system_clock::now();
         PerfStats::totalthreads = std::thread::hardware_concurrency();
@@ -112,8 +115,8 @@ public:
     {
         auto newtime = std::chrono::system_clock::now();
 
-        if (((newtime - time).count() > 0.17e6 && off == false) || force)
-        { // only update every 0.17s
+        if (((newtime - time).count() > 0.1e6 && off == false) || force)
+        { // only update every 0.1s
             sscanf(exec(PerfStats::statscommand).c_str(), "%lf %i %i", &(PerfStats::pcpu), &(PerfStats::rss), &(PerfStats::nthreads));
             PerfStats::fps = GetFPS();
 
@@ -177,6 +180,7 @@ public:
     void toggle()
     {
         off = !off;
+        // off==true ? EnableEventWaiting() : DisableEventWaiting();
         manager->draw();
     }
 };
@@ -305,7 +309,6 @@ public:
         lims[1] = (*x1);
         lims[2] = (*y0);
         lims[3] = (*y1);
-        drawOwner();
     }
 };
 
@@ -319,10 +322,7 @@ struct graphHeatmap : graphData
     Color color2;
 
     // Constructor
-    graphHeatmap(graph* owner, std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z, std::string n, Color c, Color c2, double alpha = 1) : graphData(owner, c, n,alpha), xData(x), yData(y), zData(z), color2(c2)
-    {
-        setLims();
-    }
+    graphHeatmap(graph* owner, std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z, std::string n, Color c, Color c2, double alpha = 1) : graphData(owner, c, n,alpha), xData(x), yData(y), zData(z), color2(c2) {}
 
 public:
     void draw(Rectangle inside_bounds, double plot_lims[4])
@@ -381,8 +381,9 @@ public:
 
 struct graph : Renderer
 {
+    std::vector<std::shared_ptr<graphLine>> lines;
 private:
-    std::vector<std::shared_ptr<graphData>> lines;
+    std::shared_ptr<graphHeatmap> theheatmap = NULL;
 
     std::vector<double> xTicks;
     std::vector<std::string> xTickLabels;
@@ -393,25 +394,24 @@ private:
 
     double lims[4] = {0, 1, 0, 1};
 
-    std::string xLabel;
-    std::string yLabel;
     int fontSize = 20;
     Font fontTtf = LoadFontFromMemory(".ttf", UbuntuMonoBold, (sizeof(UbuntuMonoBold) / sizeof(*UbuntuMonoBold)), fontSize, 0, 0);
     int fontSize2 = 15;
     Font fontTtf2 = LoadFontFromMemory(".ttf", UbuntuMonoBold, (sizeof(UbuntuMonoBold) / sizeof(*UbuntuMonoBold)), fontSize2, 0, 0);
 
     Vector2 padding = {0, 8};
+public:
+    std::string xLabel;
+    std::string yLabel;
     bool legend = true;
-
-    Rectangle bounds;
+    bool autoLims = false;
 
 public:
     // Constructors
-    graph(Rectangle bounds, std::string xLabel, std::string yLabel) : lines(std::vector<std::shared_ptr<graphData>>()), xLabel(xLabel), yLabel(yLabel), bounds(bounds)
+    graph(Rectangle bounds, std::string xLabel, std::string yLabel) : Renderer(bounds), lines(std::vector<std::shared_ptr<graphLine>>()), xLabel(xLabel), yLabel(yLabel)
     {
         // Avoid pixel issues by rounding to integers
         graph::bounds = {(float)(int)bounds.x, (float)(int)bounds.y, (float)(int)bounds.width, (float)(int)bounds.height};
-        setLims();
         draw();
     }
     graph(Rectangle bounds) : graph(bounds, "", "") {}
@@ -482,7 +482,7 @@ private:
     Color nextColor()
     {
         static int count = -1;
-        static Color cols[] = {BLACK, PINK, SKYBLUE, GREEN, MAROON, VIOLET, DARKBLUE, ORANGE, LIME, MAGENTA};
+        static Color cols[] = {PINK, SKYBLUE, GREEN, MAROON, VIOLET, DARKBLUE, ORANGE, LIME, MAGENTA};
         count = (count + 1) % ARRAY_SIZE(cols);
         return cols[count];
     }
@@ -490,11 +490,11 @@ private:
 public:
     auto plot(std::vector<double> x, std::vector<double> y, std::string name, Color color, double alpha = 1, double lineWidth = 2, double pointRadius = 0)
     {
-        lines.push_back(std::make_shared<graphLine>(this, x, y, name, color, alpha, lineWidth, pointRadius));
-        if (lines.size() == 1)
-            setLims(); // set lims if we've added the first line
+        auto newline = std::make_shared<graphLine>(this, x, y, name, color, alpha, lineWidth, pointRadius);
+        lines.push_back(newline);
+        if (autoLims || lines.size()==1) {setLims();}
         draw();
-        return std::dynamic_pointer_cast<graphLine>(lines.back());
+        return newline;
     }
     auto plot(std::vector<double> x, std::vector<double> y, std::string n) { return plot(x, y, n, nextColor()); }
     auto plot(std::vector<double> x, std::vector<double> y) { return plot(x, y, "", nextColor()); }
@@ -504,11 +504,11 @@ public:
 
     auto heatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z, std::string n, Color c, Color c2)
     {
-        lines.push_back(std::make_shared<graphHeatmap>(this, x, y, z, n, c, c2));
-        if (lines.size() == 1)
-            setLims(); // set lims if we've added the first line
+        auto newheatmap = std::make_shared<graphHeatmap>(this, x, y, z, n, c, c2);
+        theheatmap = newheatmap;
+        setLims();
         draw();
-        return std::dynamic_pointer_cast<graphHeatmap>(lines.back());
+        return newheatmap;
     }
     auto heatmap(std::vector<double> x, std::vector<double> y, std::vector<std::vector<double>> z) { return heatmap(x, y, z, "", BLUE, PURPLE); }
     auto heatmap(std::vector<std::vector<double>> z) { return heatmap(std::vector<double>(0, 1), std::vector<double>(0, 1), z); }
@@ -584,18 +584,17 @@ public:
     {
         // Automatically assigns limits to include all data in graph
         bool first = true;
-        for (auto const &line : lines)
-        {
-            if (first || line->lims[0] < lims[0])
-                lims[0] = line->lims[0];
-            if (first || line->lims[1] > lims[1])
-                lims[1] = line->lims[1];
-            if (first || line->lims[2] < lims[2])
-                lims[2] = line->lims[2];
-            if (first || line->lims[3] > lims[3])
-                lims[3] = line->lims[3];
+
+        #define SET_LIMS_XMACRO(line) if (first || line->lims[0] < lims[0]){lims[0] = line->lims[0];};\
+            if (first || line->lims[1] > lims[1]){lims[1] = line->lims[1];};\
+            if (first || line->lims[2] < lims[2]){lims[2] = line->lims[2];};\
+            if (first || line->lims[3] > lims[3]){lims[3] = line->lims[3];};\
             first = false;
-        }
+
+        for (auto const &line : lines) {SET_LIMS_XMACRO(line);}
+        if (theheatmap!=NULL) {SET_LIMS_XMACRO(theheatmap);}
+        #undef SET_LIMS_XMACRO
+
         if (lines.empty())
         {
             lims[0] = 0;
@@ -604,10 +603,6 @@ public:
             lims[3] = 1;
         }
         setLims(lims[0], lims[1], lims[2], lims[3]);
-    }
-    void setPadding(float x, float y)
-    {
-        padding = Vector2{x, y};
     }
     void clearLines()
     {
@@ -710,7 +705,7 @@ public:
             DrawLineEx(Vector2{data_bounds.x, yToPos(ytick)}, Vector2{data_bounds.x + fontSize2 / 3, yToPos(ytick)}, 2, DARKGRAY);
 
             auto textSize = MeasureTextEx(fontTtf, yticklabel, fontSize2, 0);
-            // If we arent fully in the plot area or overlap the last label dont show the label
+            // If we aren't fully in the plot area or overlap the last label dont show the label
             auto loc = Vector2{data_bounds.x - textSize.y - 2, yToPos(ytick) + textSize.x / 2};
             if (loc.y - textSize.x < bounds.y || loc.y > data_bounds.y + data_bounds.height || loc.y > (lastpos - textSize.y / 2))
             {
@@ -748,6 +743,7 @@ public:
 // Delayed definition when graph->draw() is complete
 void graphData::drawOwner()
 {
+    // If we are calling this the graphData has changed somehow so sensible to update the limits before drawing
+    owner->setLims();
     owner->draw();
 }
-#endif // SEAHORSE_RENDERERS

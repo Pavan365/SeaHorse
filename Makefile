@@ -1,10 +1,11 @@
 STDS ?= -std=c++20
 WFLAGS ?= -Wall -Wpedantic -Wno-deprecated-declarations -Wno-format-security -Wno-deprecated-enum-compare-conditional -Wno-deprecated-anon-enum-enum-conversion
 DEFS ?= 
-LIBS ?=
+LIBS ?= -lseahorse -lraylib
 IPATH ?=
-LPATH ?=
+LPATH ?= -L./libs/seahorse -L./libs/raylib
 FRAMEWORKS ?= -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
+
 
 # Using libs...
 IPATH += -I./libs
@@ -18,13 +19,10 @@ LIBS += -lfftw3 -lfftw3f -lfftw3l
 LPATH += -L/usr/local/lib
 
 # Release optimisation flags
-OPTS ?=
-OPTS += -fno-math-errno
-OPTS += -mavx2
-OPTS += -mfma
-OPTS += -march=native
+OPTS := -O3
+OPTS += -mavx2 -mfma -march=native -ffp-contract=fast -fno-math-errno
+# OPTS += -ffast-math
 DEFS += -DNDEBUG
-OPTS += -ffp-contract=fast
 
 # Compilers
 CC = gcc
@@ -35,19 +33,31 @@ all: clean release
 	$(RUN) ./bin/release $(ARGS)
 
 # Graphical Interface
-gui:
-	$(CXX) $(FRAMEWORKS) $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -O3 $(LPATH) $(LIBS) ./libs/raylib/libraylib.a $@.cpp -g -o ./bin/$@
+gui: gui.cpp Makefile ./libs/seahorse/libseahorse.a
+	$(info ********* GRAPHICAL VERSION ***********)
+	$(CXX) $(FRAMEWORKS) $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) $(LPATH) $(LIBS) $@.cpp -o ./bin/$@
 
-# NB: MUST BE [sources/objects] then [flags] then [output] OR LINKING FAILS
-release: main.cpp Makefile
-	$(info ************  RELEASE VERSION ************)
-	$(CXX) main.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -O3 $(LPATH) $(LIBS) -g -o ./bin/$@
+# Main.cpp file
+release: main.cpp Makefile ./libs/seahorse/libseahorse.a
+	$(info ********** RELEASE VERSION ************)
+	$(CXX) main.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) $(LPATH) $(LIBS) -o ./bin/$@
 
-# NB: MUST BE [sources/objects] then [flags] then [output] OR LINKING FAILS
+# We don't depend on the lib as we just rebuild/destroy it anyway
 debug: main.cpp Makefile
-	$(info ************   DEBUG VERSION  ************)
-	$(CXX) main.cpp $(STDS) $(DEFS) $(WFLAGS) $(IPATH) -O0 $(LPATH) $(LIBS) -o ./bin/$@
+	$(info *********** DEBUG VERSION *************)
+	$(RUN) rm ./libs/seahorse/libseahorse.a
+	$(WARNING: OPTIMISATION FLAGS MUST MATCH AGAINST libseahorse.a OR CRASHES)
+	$(CXX) ./libs/seahorse/src/seahorse.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -o ./libs/seahorse/$@.o
+	$(RUN) ar rvs ./libs/seahorse/libseahorse.a ./libs/seahorse/libseahorse.o && rm ./libs/seahorse/libseahorse.o
+	$(CXX) main.cpp $(STDS) $(DEFS) -O0 $(WFLAGS) $(IPATH) $(LPATH) $(LIBS) -o -g ./bin/$@
+	$(RUN) rm ./libs/seahorse/libseahorse.a
 	$(RUN) ./bin/$@ $(ARGS)
+
+# NB This must have EXACTLY the same architecture/optimisation flags set as the other builds
+libs/seahorse/libseahorse.a : $(shell find ./libs/seahorse -type f ! -name libseahorse.a)
+	$(info ******* BUILDING LIB_SEAHORSE *********)
+	$(CXX) libs/seahorse/src/seahorse.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -c -o libs/seahorse/libseahorse.o
+	$(RUN) ar rvs libs/seahorse/libseahorse.a libs/seahorse/libseahorse.o && rm libs/seahorse/libseahorse.o
 
 # Clean up any executables
 clean:
