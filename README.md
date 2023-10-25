@@ -8,6 +8,7 @@ Building:
 	- Eigen:
 
 	- Spectra:
+		Straight from github
 
 	- Raylib (For GUI related code):
 

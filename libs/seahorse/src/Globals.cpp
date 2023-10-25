@@ -20,7 +20,7 @@ using CVec = Eigen::VectorXcd;
 template <typename ...Args>
 void S_LOG_IMPL(const char* type, int line, const char* fileName, Args&& ...args) {
     std::ostringstream stream;
-    stream << type << " " <<fileName << ":" << line << " - ";
+    stream << type << " " <<fileName << ":" << line << " -> ";
     (stream << ... << std::forward<Args>(args)) << '\n';
 
     printf(stream.str().c_str());
