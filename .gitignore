@@ -36,3 +36,4 @@
 
 # Executables or analysis
 /output/*
+/bin/*
