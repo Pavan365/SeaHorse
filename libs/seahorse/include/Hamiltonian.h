@@ -3,8 +3,8 @@
 #include "HilbertSpace.h"
 
 // Spectra
-#include <spectra/SymEigsSolver.h>
-#include <spectra/MatOp/SparseSymMatProd.h>
+#include <spectra/include/Spectra/SymEigsSolver.h>
+#include <spectra/include/Spectra/MatOp/SparseSymMatProd.h>
 
 class Spectrum
 {

@@ -3,7 +3,7 @@
 #include <thread>
 #include <unistd.h>
 #include <iomanip>
-#include "raylib/raygui.h"
+#include "raygui/src/raygui.h"
 #include "seahorse/src/Globals.cpp"
 
 // Data

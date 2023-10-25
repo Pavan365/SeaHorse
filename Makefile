@@ -1,15 +1,16 @@
 STDS ?= -std=c++20
 WFLAGS ?= -Wall -Wpedantic -Wno-deprecated-declarations -Wno-format-security -Wno-deprecated-enum-compare-conditional -Wno-deprecated-anon-enum-enum-conversion
 DEFS ?= 
-LIBS ?= -lseahorse -lraylib
+LIBS ?= -lseahorse
 IPATH ?=
-LPATH ?= -L./libs/seahorse -L./libs/raylib
+LPATH ?= -L./libs/seahorse
 FRAMEWORKS ?= -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 
 
 # Using libs...
 IPATH += -I./libs
 IPATH += -I./libs/eigen
+IPATH += -I./libs/raylib/src
 IPATH += -I./include
 
 # If using fftw3... This speeds up splitstep by a factor ~2
@@ -19,10 +20,10 @@ LIBS += -lfftw3 -lfftw3f -lfftw3l
 LPATH += -L/usr/local/lib
 
 # Release optimisation flags
+OPTS := -Ofast
 OPTS += -mavx2 -mfma -march=native 
 OPTS += -ffp-contract=fast -fno-math-errno 
 # OPTS += -ffast-math -funsafe-math-optimizations # potentially wrong results - check?
-OPTS := -Ofast
 DEFS += -DNDEBUG
 
 # Compilers
@@ -37,9 +38,9 @@ NC='\033[0m'
 all: clean release
 
 # Graphical Interface
-gui: gui.cpp Makefile ./libs/seahorse/libseahorse.a
+gui: gui.cpp Makefile ./libs/seahorse/libseahorse.a libs/raylib/src/libraylib.a
 	@echo ${GREEN}[BUILDING]${NC} Graphical Version...
-	$(CXX) $(FRAMEWORKS) $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) $(LPATH) $(LIBS) $@.cpp -o ./bin/$@
+	$(CXX) $(FRAMEWORKS) $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) $(LPATH) -L./libs/raylib/src $(LIBS) -lraylib $@.cpp -o ./bin/$@
 	$(RUN) ./bin/$@ $(ARGS)
 
 # Main.cpp file
@@ -60,17 +61,20 @@ debug: main.cpp Makefile
 	$(RUN) ./bin/$@ $(ARGS)
 
 # NB This must have EXACTLY the same architecture/optimisation flags set as the other builds
-libs/seahorse/libseahorse.a : $(shell find ./libs/seahorse -type f ! -name libseahorse.a) Makefile
+libs/seahorse/libseahorse.a : $(shell find ./libs/seahorse -type f ! -name libseahorse.a) Makefile libs/eigen libs/spectra
 	@echo ${GREEN}[BUILDING]${NC} Lib Seahorse...
 	$(CXX) libs/seahorse/src/seahorse.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -c -o libs/seahorse/libseahorse.o
 	$(RUN) ar rvs libs/seahorse/libseahorse.a libs/seahorse/libseahorse.o
 	- $(RUN) rm libs/seahorse/libseahorse.o
 
-libs/raylib/libraylib.a :
-	
+# We have these checked out at a specific time so don't need to check for changes
+libs/raylib/src/libraylib.a : libs/raylib/src/raylib.h libs/raygui/src/raygui.h
+	@echo ${GREEN}[BUILDING]${NC} Lib Raylib...
+	(cd libs/raylib/src && make PLATFORM=PLATFORM_DESKTOP RAYLIB_MODULE_RAYGUI=TRUE)
 
 # Clean up any executables
 clean:
 	@echo ${GREEN}[CLEANING]${NC} ...
-	rm -rf ./bin/*
+	- rm -rf ./bin/*
 	- rm libs/seahorse/libseahorse.a
+	- find libs/raylib/src/*.o | xargs rm

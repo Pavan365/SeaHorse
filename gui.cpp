@@ -1,7 +1,8 @@
 #include "libs/seahorse/seahorse.h"
 
-#include "raylib/raylib.h"
-#include "raylib/raygui.h"
+
+#include "libs/raylib/src/raylib.h"
+#include "libs/raygui/src/raygui.h"
 
 
 #define TEXT_SPACING_VALUE 0
@@ -14,7 +15,7 @@ Font fontTtf;
 void GenerateFontFile(std::string fontFile = "resources/UbuntuMonoBold.ttf")
 {
     // Pull in file
-    int dataSize = 0;
+    unsigned int dataSize = 0;
     unsigned char *fileData = LoadFileData(fontFile.c_str(), &dataSize);
     // Redirect stdout to the new file
     FILE *saved = stdout;

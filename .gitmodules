@@ -1,0 +1,12 @@
+[submodule "libs/eigen"]
+	path = libs/eigen
+	url = https://gitlab.com/libeigen/eigen
+[submodule "libs/spectra"]
+	path = libs/spectra
+	url = https://github.com/yixuan/spectra
+[submodule "libs/raylib"]
+	path = libs/raylib
+	url = https://github.com/raysan5/raylib
+[submodule "libs/raygui"]
+	path = libs/raygui
+	url = https://github.com/raysan5/raygui

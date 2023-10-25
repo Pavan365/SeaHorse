@@ -1,25 +1,30 @@
 # SeaHorse
-Quantum Simulation and Optimal Control
+Quantum Simulation and Optimal Control.
 
+## Included libraries:
 
+### - Eigen:
+	* * INCLUDED AS SUBMODULE * *
 
-Building:
+	Used for fast linear algebra calculations.
 
-	- Eigen:
+### - Spectra:
+	* * INCLUDED AS SUBMODULE * *
 
-	- Spectra:
-		Straight from github
+	Used for generating eigenvectors.
+	This is substantially faster than Eigen's default implementation as it allows us to request only a specific number instead of the full specturm.
 
-	- Raylib (For GUI related code):
+### - Raylib + Raygui (For GUI related code):
+	* * INCLUDED AS SUBMODULE * *
 
-		Run commands to get and build raylib with raygui:
+	Used for the graphical interface. This is only used for gui.cpp not main.cpp
 
-			`git clone https://github.com/raysan5/raylib`
-			`git clone https://github.com/raysan5/raygui`
-			`cd raylib/src`
-			`make PLATFORM=PLATFORM_DESKTOP RAYLIB_MODULE_RAYGUI=TRUE`
+## Building:
 
-		Now move these files to SeaHorse/libs/raylib
-			raylib/src/raylib.h
-			raylib/src/libraylib.a
-			raygui/src/raygui.h
+On first run you need to initialise and update the submodules:
+
+`git init submodules`
+`git update submodules`
+
+We use the make build system:
+`make`
