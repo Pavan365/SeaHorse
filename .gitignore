@@ -35,5 +35,4 @@
 *.DS_Store
 
 # Executables or analysis
-/bin/*
 /output/*
