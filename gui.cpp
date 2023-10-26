@@ -139,7 +139,7 @@ int main()
     HamiltonianFn H(hs,V0);
     Hamiltonian H0 = H(0);
 
-    CVec psi_0 = H0[0];
+    CVec psi_0 = H0[0]+H0[2]+H0[4]+H0[6];
     SplitStepper stepper = SplitStepper(dt,H,psi_0);
 
     int numsteps = 1;
@@ -187,7 +187,7 @@ int main()
         if (GuiButton(Rectangle{90, 660, 100, 20}, "Clear plot")) mainplot.clearLines();
         if (GuiButton(Rectangle{200, 660, 100, 20}, "Set lims.")) mainplot.setLims();
         if (GuiButton(Rectangle{310, 660, 100, 20}, "Plot Spectrum")) plotSpectrum(mainplot,x,H0,10);
-
+        
         // State plots
         if (GuiButton(Rectangle{1160, 505, 100, 20}, "Clear plots")) {momplot.clearLines();spaceplot.clearLines();};
         if (GuiButton(Rectangle{1160, 535, 100, 20}, "Set lims.")) {momplot.setLims();spaceplot.setLims();};

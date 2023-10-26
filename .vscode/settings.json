@@ -103,7 +103,8 @@
         "numericaldiff": "cpp",
         "openglsupport": "cpp",
         "specialfunctions": "cpp",
-        "splines": "cpp"
+        "splines": "cpp",
+        "*.inc": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/g++",
     "cmake.configureOnOpen": false,

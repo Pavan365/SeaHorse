@@ -645,31 +645,35 @@ public:
         if (legend)
         {
             float padding = 10;
-            std::string names = "";
-            float textWidth = 0;
+            float maxWidth = 0;
+            float totalHeight = 0;
+            std::vector<float> textHeights = {};
+            std::vector<Color> colors = {};
+            std::vector<std::string> names = {};
             for (auto line : lines)
             {
                 if (line->name == "") {continue;}
-                names += (line->name + "\n");
-                auto size = MeasureTextEx(fontTtf2,line->name.c_str(),fontSize2,0);
-                textWidth = std::max(textWidth,size.x);
+                names.push_back(line->name.c_str());
+                colors.push_back(line->color);
+                auto size = MeasureTextEx(fontTtf2,names.back().c_str(),fontSize2,0);
+                textHeights.push_back(size.y);
+                totalHeight += size.y;
+                maxWidth = std::max(maxWidth,size.x);
             }
-            if (names != "")
+            if (names.size()!=0)
             {
-                names.resize(names.length()-1); // remove last \n
-                float textHeight = MeasureTextEx(fontTtf2,names.c_str(),fontSize2,0).y;
-                auto legend_rect = Rectangle{data_bounds.x+data_bounds.width-textWidth-padding*4,data_bounds.y,textWidth+padding*4,textHeight+padding*2};
+                auto legend_rect = Rectangle{data_bounds.x+data_bounds.width-maxWidth-padding*4,data_bounds.y,maxWidth+padding*4,totalHeight+padding*2};
                 DrawRectangleRounded(legend_rect,0.1,10,WHITE);
                 DrawRectangleRoundedLines(legend_rect,0.1,10,2,DARKGRAY);
-
-                DrawTextEx(fontTtf2,names.c_str(),{legend_rect.x+3*padding,legend_rect.y+padding},fontSize2,0,BLACK);
-                float cnt = 0.5;
-                for (auto line : lines)
+                float heightSoFar = 0;
+                for (auto i = 0; i<names.size();i++)
                 {
-                    DrawLineEx({legend_rect.x+padding,legend_rect.y+padding+cnt*fontSize2},{legend_rect.x+padding*2,legend_rect.y+padding+cnt*fontSize2},4,line->color);
-                    cnt+=1;
+                    DrawTextEx(fontTtf2,names[i].c_str(),{legend_rect.x+3*padding,legend_rect.y+padding + heightSoFar},fontSize2,0,BLACK);
+                    DrawLineEx({legend_rect.x+padding,legend_rect.y+padding+heightSoFar +(float)0.5*textHeights[i]},{legend_rect.x+padding*2,legend_rect.y+padding+heightSoFar+(float)0.5*textHeights[i]},4,colors[i]);
+                    heightSoFar+=textHeights[i];
                 }
             }
+
 
         }
         EndScissorMode();
