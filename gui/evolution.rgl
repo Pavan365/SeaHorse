@@ -1,0 +1,21 @@
+#
+# rgl layout text file (v4.0) - raygui layout file generated using rGuiLayout
+#
+# Number of controls:     10
+#
+# Ref. window:    r <x> <y> <width> <height>
+# Anchor info:    a <id> <name> <posx> <posy> <enabled>
+# Control info:   c <id> <type> <name> <rectangle> <anchor_id> <text>
+#
+r 0 40 -1 -1
+a 001 evolution_anchor 192 72 1
+c 000 0 evolution 0 0 440 464 1 evolution
+c 001 3 evolution_spaceplot 0 24 440 240 1 
+c 002 3 evolution_controlplot 0 304 312 128 1 
+c 003 15 evolution_num_steps 72 272 88 24 1 Num Steps: 
+c 004 7 evolution_evolve 224 272 24 24 1 
+c 005 4 evolution_evolve_label 184 272 40 24 1 Evolve: 
+c 006 5 evolution_reset 272 272 56 24 1 Reset
+c 007 4 evolution_fid 352 272 96 24 1 Fidelity: 0.992
+c 008 18 evolution_progress 8 440 304 12 1 
+c 009 21 evolution_control 320 304 112 152 1 ONE;TWO;THREE

@@ -22,7 +22,7 @@ void SplitStepper::reset(CVec psi_0)
 {
     if ((psi_0.norm()-1.0)>1e-10) {S_INFO("PSI_0 automatically normalised (from ",psi_0.norm(),")");}
     m_psi_0 = psi_0/psi_0.norm();
-    m_spacebuf = m_psi_0;
+    SplitStepper::reset();
 }
 
 void SplitStepper::step(double u) // Move forward a single step
@@ -55,11 +55,11 @@ void SplitStepper::evolve(RVec control, std::function<void(CVec)> save_data){
 // Optimised steps but can't provide intermediate step wavefunctions
 // This combines T/2 ifft fft T/2 between steps to save computation.
 void SplitStepper::evolve(RVec control){
-std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+    std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
     // Special treatment for the last component
     double last = control[control.size()-1];
     control.resize(control.size()-1);
-
+    
     // Initial half step T/2
     m_fft.fwd(m_mombuf,m_spacebuf);
     m_mombuf = m_mombuf.array().cwiseProduct(m_T_exp_2.array()).matrix();

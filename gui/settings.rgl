@@ -1,0 +1,25 @@
+#
+# rgl layout text file (v4.0) - raygui layout file generated using rGuiLayout
+#
+# Number of controls:     14
+#
+# Ref. window:    r <x> <y> <width> <height>
+# Anchor info:    a <id> <name> <posx> <posy> <enabled>
+# Control info:   c <id> <type> <name> <rectangle> <anchor_id> <text>
+#
+r 0 40 -1 -1
+a 001 settings_anchor 112 72 1
+c 000 0 settings 0 0 256 232 1 settings
+c 001 4 settings_dim_label 8 32 120 24 1 Dimension (2^n):
+c 002 4 settings_dt_label 8 64 120 24 1 Time Step:
+c 003 4 settings_xlim_label 8 96 120 24 1 X Limits:
+c 004 4 settings_imag_bounds_label 8 128 120 24 1 Imag Bounds:
+c 005 15 settings_dim 128 32 120 24 1 
+c 006 14 settings_dt 128 64 120 24 1 
+c 007 14 settings_xlim 128 96 120 24 1 
+c 008 7 settings_imag_bounds 176 128 24 24 1 
+c 009 2 settings_line 8 152 240 16 1 
+c 010 4 settings_psi_0_label 8 168 120 24 1 Psi_0:
+c 011 4 settings_psi_t_label 8 200 120 24 1 Psi_t:
+c 012 11 settings_psi_0 128 168 120 24 1 H[0];H[1];H[2]
+c 013 11 settings_psi_t 128 200 120 24 1 H[0];H[1];H[2]
