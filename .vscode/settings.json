@@ -106,17 +106,5 @@
         "splines": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/g++",
-    "cmake.sourceDirectory": "/Users/User/Library/Mobile Documents/com~apple~CloudDocs/Work/Physics/PhD/SeaHorse/libs/eigen/unsupported/test",
-    "makefile.launchConfigurations": [
-        {
-            "cwd": "/Users/User/Library/Mobile Documents/com~apple~CloudDocs/Work/Physics/PhD/SeaHorse/bin",
-            "binaryPath": "/Users/User/Library/Mobile Documents/com~apple~CloudDocs/Work/Physics/PhD/SeaHorse/bin/gui",
-            "binaryArgs": []
-        },
-        {
-            "cwd": "/Users/User/Library/Mobile Documents/com~apple~CloudDocs/Work/Physics/PhD/SeaHorse",
-            "binaryPath": "/Users/User/Library/Mobile Documents/com~apple~CloudDocs/Work/Physics/PhD/SeaHorse/bin/gui",
-            "binaryArgs": []
-        }
-    ]
+    "cmake.configureOnOpen": false,
 }

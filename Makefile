@@ -37,10 +37,11 @@ NC='\033[0m'
 # Defaults to main.cpp in release mode
 all: clean release
 
-# Graphical Interface
+# Graphical Interface - (this is also inserted into the seahorse.app)
 gui: gui.cpp Makefile ./libs/seahorse/libseahorse.a libs/raylib/src/libraylib.a
 	@echo ${GREEN}[BUILDING]${NC} Graphical Version...
 	$(CXX) $(FRAMEWORKS) $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) $(LPATH) -L./libs/raylib/src $(LIBS) -lraylib $@.cpp -o ./bin/$@
+	@cp ./bin/gui ./seahorse.app/Contents/MacOS/seahorse
 	$(RUN) ./bin/$@ $(ARGS)
 
 # Main.cpp file
