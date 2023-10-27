@@ -1,10 +1,13 @@
 #pragma once
 
-#include "seahorse/src/Globals.cpp"
-#include "Hamiltonian.h"
 #include <iostream>
+
+#include "seahorse/include/Globals.h"
+#include "seahorse/include/Hamiltonian.h"
+
 #include <eigen/Eigen/Core>
 #include <eigen/unsupported/Eigen/FFT>
+
 #include <fftw3.h>
 
 // General class to evolve wavefunctions: either by a single `step(u)` or multiple `evolve(control)`.

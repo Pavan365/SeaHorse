@@ -1,5 +1,3 @@
-#pragma once
-
 #include "seahorse/include/HilbertSpace.h"
 
 // Constructors

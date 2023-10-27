@@ -1,4 +1,5 @@
 #include "seahorse/include/Steppers.h"
+#include "seahorse/include/Vectors.h"
 
 //Constructor
 Stepper:: Stepper(double dt, CVec psi_0) : m_dt(dt), m_psi_0(psi_0) {}

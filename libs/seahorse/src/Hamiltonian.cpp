@@ -1,5 +1,5 @@
 #include "seahorse/include/Hamiltonian.h"
-#include "HilbertSpace.cpp"
+#include "seahorse/include/HilbertSpace.h"
 
 
 // Actual construction from result

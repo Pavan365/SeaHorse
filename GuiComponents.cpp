@@ -483,7 +483,7 @@ private:
     {
         static int count = -1;
         static Color cols[] = {PINK, SKYBLUE, GREEN, MAROON, VIOLET, DARKBLUE, ORANGE, LIME, MAGENTA};
-        count = (count + 1) % ARRAY_SIZE(cols);
+        count = (count + 1) % (sizeof(cols) / sizeof(cols[0]));
         return cols[count];
     }
     // Plotting functions

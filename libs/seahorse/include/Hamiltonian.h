@@ -1,6 +1,6 @@
 #pragma once
 
-#include "HilbertSpace.h"
+#include "seahorse/include/HilbertSpace.h"
 
 // Spectra
 #include <spectra/include/Spectra/SymEigsSolver.h>

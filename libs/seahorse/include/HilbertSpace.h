@@ -1,6 +1,6 @@
 #pragma once
 
-#include "seahorse/src/Vectors.cpp"
+#include "seahorse/include/Vectors.h"
 
 void test(int i);
 

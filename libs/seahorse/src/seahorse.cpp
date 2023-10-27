@@ -5,7 +5,7 @@
 using namespace std::complex_literals;
 
 // Seahorse Components - actual implementations
-#include "seahorse/src/Globals.cpp"
+#include "seahorse/include/Globals.h"
 #include "seahorse/src/Random.cpp"
 #include "seahorse/src/Vectors.cpp"
 #include "seahorse/src/HilbertSpace.cpp"
