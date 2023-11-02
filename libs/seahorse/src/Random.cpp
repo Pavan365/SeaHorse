@@ -1,4 +1,4 @@
-#include <seahorse/include/Random.h>
+#include <libs/seahorse/include/Random.h>
 
 uint64_t get_rand_seed()
 {
@@ -8,14 +8,17 @@ uint64_t get_rand_seed()
     return rand_seed;
 }
 
-randGen::randGen(double start, double stop) : dist(std::uniform_real_distribution<double>(start, stop))
+randGen::randGen(double start, double stop)
+    : dist(std::uniform_real_distribution<double>(start, stop))
 {
     gen = std::mt19937_64(get_rand_seed());
 }
 
-randGen::randGen() : randGen(0.0, 1.0) {}
+randGen::randGen()
+    : randGen(0.0, 1.0)
+{
+}
 
 double randGen::operator()() { return dist(gen); }
-
 
 randGen rands = randGen(0.0, 1.0);

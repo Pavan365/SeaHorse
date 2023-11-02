@@ -1,149 +1,213 @@
+#include "libs/seahorse/include/Globals.h"
 #include "libs/seahorse/seahorse.h"
+#include "libs/seahorse/src/GuiComponents.cpp"
 
-
-#include "libs/raylib/src/raylib.h"
 #include "libs/raygui/src/raygui.h"
+#include "libs/raylib/src/raylib.h"
 
+float fontSize = 15;
+float padding = 8;
+float itemSize = 24;
 
-#define TEXT_SPACING_VALUE 0
-#include "GuiComponents.cpp"
+struct SettingsState {
 
-Font fontTtf;
-//----------------------------------------------------------------------------------
-// Useful Functions Implementation
-//----------------------------------------------------------------------------------
-void GenerateFontFile(std::string fontFile = "resources/UbuntuMonoBold.ttf")
-{
-    // Pull in file
-    unsigned int dataSize = 0;
-    unsigned char *fileData = LoadFileData(fontFile.c_str(), &dataSize);
-    // Redirect stdout to the new file
-    FILE *saved = stdout;
-    stdout = fopen((fontFile + ".h").c_str(), "a");
+    // positions of windows
+    Rectangle rect_performance = { -1, 0, 142, 131 };
+    Rectangle rect_settings = { 140, 0, 211, 131 };
+    Rectangle rect_spectrum = { -1, 130, 352, 501 };
+    Rectangle rect_evolution = { 350, 130, 651, 501 };
 
-    // Write data to file
-    printf("unsigned char text_txt_data[] = {");
-    for (auto i = 0; i < dataSize; i++)
+    // We MUST return an RVec not an Eigen::Expression or the memory is freed and we get a segfault in some cases
+    std::function<RVec(double)> V0;
+
+    SettingsState()
     {
-        if (fileData[i] == 0)
-        {
-            printf("0x00,");
+        HilbertSpace hs = HilbertSpace(dim, xlim);
+        const RVec x = hs.x();
+        V0 = [&, x](double phase) {
+            return RVec(-0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2));
+        };
+    }
+
+    // spectrum variables
+    graph plot_spectrum = graph({ rect_spectrum.x, rect_spectrum.y + 23, rect_spectrum.width, rect_spectrum.height - 23 }, "Position (a.u.)", "Energy (E_r)");
+    bool spectrum_legend = true; // show legend?
+    void spectrumPlot()
+    {
+        auto hs = HilbertSpace(dim, xlim);
+        const RVec x = hs.x();
+
+        HamiltonianFn H(hs, V0);
+        Hamiltonian H0 = H(0);
+        H0.calcSpectrum(15);
+
+        plot_spectrum.clearLines();
+        plot_spectrum.plot(x, H0.V, "V (0)", BLACK, 1, 4, 0);
+        auto scaling = ((H0.eigenvalue(1) - H0.eigenvalue(0)) / 2) / (H0.spectrum.eigenvectors.cwiseAbs().maxCoeff());
+        for (auto i = 0; i < H0.spectrum.numEigvs; i++) {
+            if (H0.eigenvalue(i) > 0) {
+                break;
+            } // only plot bound states
+            plot_spectrum.plot(x, H0[i] * scaling + H0.eigenvalue(i), TextFormat("H [%d]", i));
         }
-        else
-        {
-            printf("%#04x,", fileData[i]);
+        plot_spectrum.setLims();
+    }
+
+    // performance variables
+    PerfStats perfStats = PerfStats(); // gets/holds performance stats
+
+    // settings variables
+    int dim = 1 << 12;
+    const int k = sqrt(2);
+    double xlim = PI / k / 2 * 4;
+
+    double dt = 0.001;
+    int num_steps = 1e4;
+
+    int depth = 400;
+
+    std::string psi_0 = "H[0];H[1];H[2];H[0]+H[1]";
+    int psi_0_active = 0;
+    bool psi_0_edit = false;
+};
+
+struct EvolutionState {
+public:
+    SettingsState* state;
+    SplitStepper stepper;
+    RVec control;
+    RVec t;
+    RVec x;
+
+    int currentStep = 0;
+    float progress = 0;
+
+    int numSteps = 1;
+    bool numStepsEdit = false;
+    bool evolve = false;
+
+    std::string fid = "Fidelity: 0.992";
+
+    std::string controls = "ZERO;SIN;COS;RAMP";
+    int scroll = 0;
+    int scroll_selected = 0;
+    int scroll_old_selected = 0;
+
+    graph plotSpace;
+    std::shared_ptr<graphLine> psireal;
+    std::shared_ptr<graphLine> psiimag;
+    std::shared_ptr<graphLine> psiabs;
+    std::shared_ptr<graphLine> vline;
+    graph plotControl;
+
+    EvolutionState(SettingsState* state)
+        : state(state)
+    {
+        auto hs = HilbertSpace(state->dim, state->xlim);
+        x = hs.x();
+        t = RVec::LinSpaced(state->num_steps, 0, state->num_steps * state->dt);
+
+        HamiltonianFn H(hs, state->V0);
+        Hamiltonian H0 = H(0);
+
+        CVec psi_0 = state->psi_0_active == 0 ? H0[0] : state->psi_0_active == 1 ? H0[1]
+            : state->psi_0_active == 2                                           ? H0[2]
+                                                                                 : H0[0] + H0[1];
+
+        plotSpace = graph({ state->rect_evolution.x + 0, state->rect_evolution.y + 24, 440, 240 });
+        plotControl = graph({ state->rect_evolution.x + 0, state->rect_evolution.y + 304, 312, 128 });
+        stepper = SplitStepper(state->dt, H, psi_0);
+        control = RVec::Zero(state->num_steps);
+
+        psireal = plotSpace.plot(x, stepper.state().real(), "Real", RED);
+        psiimag = plotSpace.plot(x, stepper.state().imag(), "Imag", BLUE);
+        psiabs = plotSpace.plot(x, stepper.state().cwiseAbs(), "Abs2", GREEN);
+        vline = plotSpace.plot(x, state->V0(control[currentStep]), "V", BLACK, 1, 4, 0);
+        vline->ignoreGraphLims();
+        plotControl.plot(t, control, "", BLACK);
+    }
+
+    void reset()
+    {
+        currentStep = 0;
+        progress = 0;
+
+        auto hs = HilbertSpace(state->dim, state->xlim);
+
+        HamiltonianFn H(hs, state->V0);
+        Hamiltonian H0 = H(control[currentStep]);
+        CVec psi_0 = state->psi_0_active == 0 ? H0[0] : state->psi_0_active == 1 ? H0[1]
+            : state->psi_0_active == 2                                           ? H0[2]
+                                                                                 : H0[0] + H0[1];
+
+        stepper.reset(psi_0);
+        psireal->updateYData(stepper.state().real());
+        psiimag->updateYData(stepper.state().imag());
+        psiabs->updateYData(stepper.state().cwiseAbs());
+        vline->updateYData(state->V0(control[currentStep]));
+    }
+    void setControl()
+    {
+        control = scroll_selected == 0 ? t * 0 : scroll_selected == 1 ? sin(t).eval()
+            : scroll_selected == 2                                    ? cos(t).eval()
+                                                                      : RVec::LinSpaced(t.size(), 0, 10);
+        plotControl.clearLines();
+        plotControl.plot(t, control, "", BLACK);
+        reset();
+    }
+    void step()
+    {
+        if (currentStep+numSteps < t.size()) {
+            for (auto i = 0; i < numSteps; i++) {
+                stepper.step(control[currentStep]);
+                currentStep++;
+            }
+            psireal->updateYData(stepper.state().real());
+            psiimag->updateYData(stepper.state().imag());
+            psiabs->updateYData(stepper.state().cwiseAbs());
+            vline->updateYData(state->V0(control[currentStep]));
+            progress = (float)currentStep / (float)t.size();
+        } else {
+            currentStep = 0;
+            progress = 0;
+            stepper.reset();
         }
     }
-    printf("};");
-
-    // Replace stdout
-    fclose(stdout);
-    stdout = saved;
-}
-void SetStyles()
-{
-    GuiSetStyle(DEFAULT, LINE_COLOR, 255); // Black lines
-
-    // fontTtf = LoadFontEx("UbuntuMonoBold.ttf",20,0,0);
-
-    fontTtf = LoadFontFromMemory(".ttf", UbuntuMonoBold, (sizeof(UbuntuMonoBold) / sizeof(*UbuntuMonoBold)), 20, 0, 0);
-
-    GuiSetFont(fontTtf);
-    GuiSetStyle(DEFAULT, TEXT_SIZE, 15);
-    GuiSetStyle(DEFAULT, TEXT_SPACING, TEXT_SPACING_VALUE);
-}
-
-//------------------------------------------------------------------------------------
-// Button Functions
-//------------------------------------------------------------------------------------
-void plotSpectrum(graph& plot, RVec x, Hamiltonian& H0, int num)
-{
-    plot.clearLines();
-
-    H0.calcSpectrum(num);
-    
-    plot.plot(x,H0.V,"Potential",BLACK,1,4,0);
-
-    double eig_scale = ((H0.eigenvalue(1)-H0.eigenvalue(0))/2)/(H0[0].maxCoeff());
-
-    for (auto i = 0; i < H0.spectrum.numEigvs; i++)
+    void update()
     {
-        if (H0.eigenvalue(i) > 0) {break;} // only plot bound states
-        plot.plot(x, H0[i] * eig_scale + H0.eigenvalue(i), "Eigenvector "+std::to_string(i));
+        if (scroll_selected != scroll_old_selected) {
+            setControl();
+            scroll_old_selected = scroll_selected;
+        }
+        if (evolve) {step();}
     }
-}
-void plotState(graph& spaceplot, graph& momplot, RVec x, SplitStepper& ss, HamiltonianFn& H)
-{
-    static auto realline = spaceplot.plot(x,ss.state().real(),"Real",RED);
-    // If we are the only holders of the pointer the line is deleted so replot
-    if (realline.use_count()==1) {realline = spaceplot.plot(x,ss.state().real(),"Real",RED);}
-    realline->updateYData(ss.state().real());
+};
 
-    static auto imagline = spaceplot.plot(x,ss.state().imag(),"Imag",BLUE);
-    // If we are the only holders of the pointer the line is deleted so replot
-    if (imagline.use_count()==1) {imagline = spaceplot.plot(x,ss.state().imag(),"Imag",BLUE);} 
-    imagline->updateYData(ss.state().imag());
-
-    static auto absline = spaceplot.plot(x,ss.state().cwiseAbs2(),"Abs2",BLACK);
-    // If we are the only holders of the pointer the line is deleted so replot
-    if (absline.use_count()==1) {absline = spaceplot.plot(x,ss.state().cwiseAbs2(),"Abs2",BLACK);} 
-    absline->updateYData(ss.state().cwiseAbs2());
-
-    static auto momline = momplot.plot(H.p,ss.state_p().cwiseAbs2(),"Abs2",BLACK);
-    // If we are the only holders of the pointer the line is deleted so replot
-    if (momline.use_count()==1) {momline = momplot.plot(H.p,ss.state_p().cwiseAbs2(),"Abs2",BLACK);} 
-    momline->updateYData(ss.state_p().cwiseAbs2());
-}
-
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
 int main()
 {
     // RAYGUI Initialization
     //---------------------------------------------------------------------------------------
+
     SetTraceLogLevel(LOG_WARNING);
-    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI | FLAG_WINDOW_TOPMOST);
-    InitWindow(1280, 720, "Control Panel");
-    SetStyles();
+    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT | FLAG_WINDOW_TOPMOST);
+    InitWindow(1000, 630, "Seahorse");
     SetExitKey(KEY_NULL);
     SetTargetFPS(30);
     ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
     // EnableEventWaiting();
+
+    Font fontTtf = LoadFontFromMemory(".ttf", UbuntuMonoBold, (sizeof(UbuntuMonoBold) / sizeof(*UbuntuMonoBold)), fontSize, 0, 0);
+    GuiSetStyle(DEFAULT, LINE_COLOR, 255); // Black lines
+    GuiSetFont(fontTtf);
+    GuiSetStyle(DEFAULT, TEXT_SIZE, 15);
+    GuiSetStyle(DEFAULT, TEXT_SPACING, 0);
+
     //--------------------------------------------------------------------------------------
     // MY Initialization
     //---------------------------------------------------------------------------------------
-    PerfStats perfStats(0, 0);
-
-    graph mainplot(Rectangle{50, 50, 400, 600});
-    graph spaceplot(Rectangle{550, 50, 600, 295});
-    graph momplot(Rectangle{550, 355, 600, 295});
-    ADD_AUTO_REDRAW(&mainplot,&spaceplot,&momplot,&perfStats);
-
-    //--------------------------------------------------------------------------------------
-    // Main code
-    //---------------------------------------------------------------------------------------
-    const int dim = 1 << 11;
-    const auto k = sqrt(2);
-    const auto xlim = PI / k / 2 * 4;
-    const double dt = 0.001;
-
-    auto hs = HilbertSpace(dim, xlim);
-    const RVec x = hs.x();
-    const auto depth = 400;
-
-    // Optimisation for just translational potentials?
-    // DO NOT USE AUTO HERE OR THE VECTOR DATA IS FREED INSIDE THE SCOPE!
-    std::function<RVec(double)> V0 = [&, x](double phase){return -0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2);};
-
-    HamiltonianFn H(hs,V0);
-    Hamiltonian H0 = H(0);
-
-    CVec psi_0 = H0[0]+H0[2]+H0[4]+H0[6];
-    SplitStepper stepper = SplitStepper(dt,H,psi_0);
-
-    int numsteps = 1;
-
+    auto settings = SettingsState {};
+    auto evolution = EvolutionState(&settings);
+    settings.spectrumPlot();
     //--------------------------------------------------------------------------------------
     // GUI Loop
     //---------------------------------------------------------------------------------------
@@ -151,52 +215,65 @@ int main()
     {
         // Update
         //----------------------------------------------------------------------------------
-        perfStats.update();
-        if (IsFileDropped())
-        {
-            auto files = LoadDroppedFiles();
-            for (auto i = 0; i < files.count; i++)
-            {
-                printf("%s\n", files.paths[i]);
-
-                // IsFileExtension
-                // FileExists
-                // IsPathFile
-                // GetFileName
-
-                // GetApplicationDirectory
-
-                // ChangeDirectory
-                // LoadDirectoryFilesEx
-                // UnloadDirectoryFiles
-            }
-            UnloadDroppedFiles(files);
-        }
-        //----------------------------------------------------------------------------------
-        // Draw
-        //----------------------------------------------------------------------------------
+        settings.perfStats.update();
+        evolution.update();
         BeginDrawing();
 
-        // Check if we've invalidated the screen buffer and need to redraw
-        AUTO_REDRAW();
+        ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
 
-        if ((IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) && IsKeyPressed(KEY_C)) {CloseWindow(); return 0;}
-        if (IsKeyPressed(KEY_Z)) { perfStats.toggle(); }
+        // Performance window
+        GuiPanel(settings.rect_performance, "Stats");
+        DrawTextEx(fontTtf, "FPS:", Vector2 { settings.rect_performance.x + padding, settings.rect_performance.y + padding + itemSize }, fontSize, 0, DARKGRAY);
+        DrawTextEx(fontTtf, "THR:", Vector2 { settings.rect_performance.x + padding, settings.rect_performance.y + padding + itemSize * 2 }, fontSize, 0, DARKGRAY);
+        DrawTextEx(fontTtf, "CPU:", Vector2 { settings.rect_performance.x + padding, settings.rect_performance.y + padding + itemSize * 3 }, fontSize, 0, DARKGRAY);
+        DrawTextEx(fontTtf, "RAM:", Vector2 { settings.rect_performance.x + padding, settings.rect_performance.y + padding + itemSize * 4 }, fontSize, 0, DARKGRAY);
 
-        // mainplot buttons Rectangle {50, 50, 400, 600}
-        if (GuiButton(Rectangle{90, 660, 100, 20}, "Clear plot")) mainplot.clearLines();
-        if (GuiButton(Rectangle{200, 660, 100, 20}, "Set lims.")) mainplot.setLims();
-        if (GuiButton(Rectangle{310, 660, 100, 20}, "Plot Spectrum")) plotSpectrum(mainplot,x,H0,10);
-        
-        // State plots
-        if (GuiButton(Rectangle{1160, 505, 100, 20}, "Clear plots")) {momplot.clearLines();spaceplot.clearLines();};
-        if (GuiButton(Rectangle{1160, 535, 100, 20}, "Set lims.")) {momplot.setLims();spaceplot.setLims();};
+        DrawTextEx(fontTtf, TextFormat(" %d", settings.perfStats.fps), Vector2 { settings.rect_performance.x + itemSize * 2, settings.rect_performance.y + padding + itemSize }, fontSize, 0, settings.perfStats.fps_c);
+        DrawTextEx(fontTtf, TextFormat(" %d/%d", settings.perfStats.thr, settings.perfStats.totalthreads), Vector2 { settings.rect_performance.x + itemSize * 2, settings.rect_performance.y + padding + itemSize * 2 }, fontSize, 0, settings.perfStats.thr_c);
+        DrawTextEx(fontTtf, TextFormat(" %.2f %%", settings.perfStats.cpu), Vector2 { settings.rect_performance.x + itemSize * 2, settings.rect_performance.y + padding + itemSize * 3 }, fontSize, 0, settings.perfStats.cpu_c);
+        DrawTextEx(fontTtf, TextFormat(" %.2f GB", settings.perfStats.ram), Vector2 { settings.rect_performance.x + itemSize * 2, settings.rect_performance.y + padding + itemSize * 4 }, fontSize, 0, settings.perfStats.ram_c);
 
-        if (GuiButton(Rectangle{1160, 350, 100, 20}, "Show state")) {plotState(spaceplot,momplot,x,stepper,H);};
-        if (GuiButton(Rectangle{1160, 380, 100, 20}, "Step (1)")) {stepper.step(0);plotState(spaceplot,momplot,x,stepper,H);};
-        if (GuiSpinner(Rectangle{1160, 410, 100, 20},"",&numsteps,1,10000,CheckCollisionPointRec(GetMousePosition(),{1160, 410, 100, 20}))){};
-        if (GuiButton(Rectangle{1160, 440, 100, 20}, ("Evolve ("+std::to_string(numsteps)+")").c_str())) {stepper.evolve(RVec::Zero(numsteps));plotState(spaceplot,momplot,x,stepper,H);};
-        if (GuiButton(Rectangle{1160, 470, 100, 20}, "Reset")) {stepper.reset();};
+        // Spectrum window
+        GuiPanel(settings.rect_spectrum, "Eigenspectrum");
+        settings.plot_spectrum.draw();
+
+        // Settings window
+        GuiPanel(settings.rect_settings, "Settings");
+
+        DrawTextEx(fontTtf, "Dim:", Vector2 { settings.rect_settings.x + padding, settings.rect_settings.y + padding + itemSize }, fontSize, 0, DARKGRAY);
+        DrawTextEx(fontTtf, TextFormat(" %d", settings.dim), Vector2 { settings.rect_settings.x + itemSize * 2, settings.rect_settings.y + padding + itemSize }, fontSize, 0, BLACK);
+        DrawTextEx(fontTtf, "XLim:", Vector2 { settings.rect_settings.x + itemSize * (float)4.5, settings.rect_settings.y + padding + itemSize }, fontSize, 0, DARKGRAY);
+        DrawTextEx(fontTtf, TextFormat(" %.3f", settings.xlim), Vector2 { settings.rect_settings.x + itemSize * (float)6.5, settings.rect_settings.y + padding + itemSize }, fontSize, 0, BLACK);
+
+        DrawTextEx(fontTtf, "dT:", Vector2 { settings.rect_settings.x + padding, settings.rect_settings.y + padding + itemSize * 2 }, fontSize, 0, DARKGRAY);
+        DrawTextEx(fontTtf, TextFormat(" %.3f", settings.dt), Vector2 { settings.rect_settings.x + itemSize * 2, settings.rect_settings.y + padding + itemSize * 2 }, fontSize, 0, BLACK);
+        DrawTextEx(fontTtf, "Steps:", Vector2 { settings.rect_settings.x + itemSize * (float)4.5, settings.rect_settings.y + padding + itemSize * 2 }, fontSize, 0, DARKGRAY);
+        DrawTextEx(fontTtf, TextFormat(" %d", settings.num_steps), Vector2 { settings.rect_settings.x + itemSize * (float)6.5, settings.rect_settings.y + padding + itemSize * 2 }, fontSize, 0, BLACK);
+
+        DrawTextEx(fontTtf, "Depth:", Vector2 { settings.rect_settings.x + padding, settings.rect_settings.y + padding + itemSize * 3 }, fontSize, 0, DARKGRAY);
+        DrawTextEx(fontTtf, TextFormat(" %d", settings.depth), Vector2 { settings.rect_settings.x + itemSize * 2, settings.rect_settings.y + padding + itemSize * 3 }, fontSize, 0, BLACK);
+
+        DrawTextEx(fontTtf, "Psi_0:", Vector2 { settings.rect_settings.x + padding, settings.rect_settings.y + padding + itemSize * 4 }, fontSize, 0, DARKGRAY);
+        if (GuiDropdownBox(Rectangle { settings.rect_settings.x + padding + itemSize * 2, settings.rect_settings.y + padding + itemSize * 4 - 6, 86, 24 }, settings.psi_0.c_str(), &settings.psi_0_active, settings.psi_0_edit))
+            settings.psi_0_edit = !settings.psi_0_edit;
+
+        // Evolution window
+        GuiPanel(settings.rect_evolution, "Evolution");
+        evolution.plotSpace.draw();
+        evolution.plotControl.draw();
+
+        if (GuiSpinner(Rectangle { settings.rect_evolution.x + padding, settings.rect_evolution.y + 272, 88, 24 }, NULL, &evolution.numSteps, 0, 1000, evolution.numStepsEdit))
+            evolution.numStepsEdit = !evolution.numStepsEdit;
+        GuiCheckBox(Rectangle { settings.rect_evolution.x + 88 + padding * 2, settings.rect_evolution.y + 272, 24, 24 }, "Evolve", &evolution.evolve);
+
+        if (GuiButton(Rectangle { settings.rect_evolution.x + 220, settings.rect_evolution.y + 272, 56, 24 }, "Reset"))
+            evolution.reset();
+
+        GuiLabel(Rectangle { settings.rect_evolution.x + 325, settings.rect_evolution.y + 272, 112, 24 }, evolution.fid.c_str());
+
+        GuiProgressBar(Rectangle { settings.rect_evolution.x + 8, settings.rect_evolution.y + 440, 304, 12 }, NULL, NULL, &evolution.progress, 0, 1);
+
+        GuiListView(Rectangle { settings.rect_evolution.x + 320, settings.rect_evolution.y + 304, 112, 152 }, evolution.controls.c_str(), &evolution.scroll, &evolution.scroll_selected);
 
         EndDrawing();
         //----------------------------------------------------------------------------------

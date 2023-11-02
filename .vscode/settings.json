@@ -108,4 +108,11 @@
     },
     "C_Cpp.default.compilerPath": "/usr/bin/g++",
     "cmake.configureOnOpen": false,
+    "clangd.fallbackFlags": [
+        "-I${workspaceFolder}",
+        "-I${workspaceFolder}/libs/eigen",
+        "-I${workspaceFolder}/libs/raylib/src",
+        "-std=c++20"
+    ],
+    "clang-format.executable": "/usr/local/bin/clang-format"
 }

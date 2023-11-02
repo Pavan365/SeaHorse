@@ -1,11 +1,10 @@
 #pragma once
 
-#include "seahorse/include/Vectors.h"
+#include "libs/seahorse/src/Vectors.cpp"
 
 void test(int i);
 
-class HilbertSpace
-{
+class HilbertSpace {
 private:
     // Spatial grid
     const RVec m_x;
@@ -23,6 +22,5 @@ public:
     RVec x() const;
     double dx() const;
     int dim() const;
-    inline Eigen::SparseMatrix<double> T() const; // Kinetic operator
-
+    Eigen::SparseMatrix<double> T() const; // Kinetic operator
 };

@@ -15,20 +15,24 @@ HilbertSpace::HilbertSpace(int dim, double xmin, double xmax)
         if (i > 1) {
             Laplace.coeffRef(i - 2, i) = -1;
         } else {
-            Laplace.coeffRef(i-2+dim, i) = -1;}
+            Laplace.coeffRef(i - 2 + dim, i) = -1;
+        }
         if (i > 0) {
             Laplace.coeffRef(i - 1, i) = 16;
         } else {
-            Laplace.coeffRef(i-1+dim, i) = 16;}
+            Laplace.coeffRef(i - 1 + dim, i) = 16;
+        }
         Laplace.coeffRef(i, i) = -30;
         if (i < dim - 1) {
             Laplace.coeffRef(i + 1, i) = 16;
         } else {
-            Laplace.coeffRef(i+1- dim, i) = 16;}
+            Laplace.coeffRef(i + 1 - dim, i) = 16;
+        }
         if (i < dim - 2) {
             Laplace.coeffRef(i + 2, i) = -1;
         } else {
-            Laplace.coeffRef(i+2-dim, i) = -1;}
+            Laplace.coeffRef(i + 2 - dim, i) = -1;
+        }
     }
     Laplace /= ((m_dx * m_dx) * 12); // rescale derivative
     m_T = Laplace * (-0.5); // p^2/2m = -(d^2/dx^2)(h_bar)^2/2m  with m=1,h_bar=1

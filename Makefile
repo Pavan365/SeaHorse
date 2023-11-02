@@ -8,10 +8,9 @@ FRAMEWORKS ?= -framework CoreVideo -framework IOKit -framework Cocoa -framework 
 
 
 # Using libs...
-IPATH += -I./libs
+IPATH += -I./
 IPATH += -I./libs/eigen
 IPATH += -I./libs/raylib/src
-IPATH += -I./include
 
 # If using fftw3... This speeds up splitstep by a factor ~2
 # We may or may not want this based on dimensions

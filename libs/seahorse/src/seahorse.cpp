@@ -1,14 +1,17 @@
 // standard libs
-#include <iostream>
-#include <format>
 #include <complex>
+#include <format>
+#include <iostream>
 using namespace std::complex_literals;
 
 // Seahorse Components - actual implementations
-#include "seahorse/include/Globals.h"
-#include "seahorse/src/Random.cpp"
-#include "seahorse/src/Vectors.cpp"
-#include "seahorse/src/HilbertSpace.cpp"
-#include "seahorse/src/Hamiltonian.cpp"
-#include "seahorse/src/Steppers.cpp"
-
+#include "libs/seahorse/include/Globals.h"
+#include "libs/seahorse/src/Basis.cpp"
+#include "libs/seahorse/src/Hamiltonian.cpp"
+#include "libs/seahorse/src/HilbertSpace.cpp"
+#include "libs/seahorse/src/Optimiser.cpp"
+#include "libs/seahorse/src/Random.cpp"
+#include "libs/seahorse/src/SplitStepper.cpp"
+#include "libs/seahorse/src/Stepper.cpp"
+#include "libs/seahorse/src/Vectors.cpp"
+#include "libs/seahorse/src/dCRAB.cpp"

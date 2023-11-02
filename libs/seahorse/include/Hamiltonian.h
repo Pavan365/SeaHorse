@@ -1,25 +1,24 @@
 #pragma once
 
-#include "seahorse/include/HilbertSpace.h"
+#include "libs/seahorse/include/HilbertSpace.h"
 
 // Spectra
-#include <spectra/include/Spectra/SymEigsSolver.h>
-#include <spectra/include/Spectra/MatOp/SparseSymMatProd.h>
+#include <libs/spectra/include/Spectra/MatOp/SparseSymMatProd.h>
+#include <libs/spectra/include/Spectra/SymEigsSolver.h>
 
-class Spectrum
-{
+class Spectrum {
 public:
     RVec eigenvalues = RVec::Zero(2);
     int numEigs = 0;
 
-    Eigen::MatrixXd eigenvectors = Eigen::MatrixXd::Zero(2,2);
+    Eigen::MatrixXd eigenvectors = Eigen::MatrixXd::Zero(2, 2);
     int numEigvs = 0;
 
     // Empty constructor
-    Spectrum(){};
+    Spectrum() {};
 
     // Actual construction from result
-    Spectrum(RVec eigs, Eigen::MatrixXd eigvs);
+    Spectrum(const RVec& eigs, const Eigen::MatrixXd& eigvs);
 
     // Return the eigenvalue (internal calls from Hamiltonian only)
     double eigenvalue(int i);
@@ -27,16 +26,15 @@ public:
     const RVec eigenvector(int i);
 };
 
-class Hamiltonian
-{
+class Hamiltonian {
 public:
-    Spectrum spectrum{};
+    Spectrum spectrum {};
     Eigen::SparseMatrix<double> H;
     // spatial potential - useful for referencing with respect to spectrum
-    RVec V; 
+    RVec V;
 
     // Constructor
-    Hamiltonian(HilbertSpace &hs, RVec V);
+    Hamiltonian(HilbertSpace& hs, const RVec& V);
 
     // Operator for getting/calculating eigenvectors
     RVec operator[](int i);
@@ -52,22 +50,27 @@ public:
 };
 
 // Class describing a controllable Hamiltonian which can be called to generate a specific Hamiltonian matrix
-class HamiltonianFn
-{
+class HamiltonianFn {
 public:
-    HilbertSpace &hs;
+    HilbertSpace& hs;
     // We might as well store this since we need it for p^2/2m anyway
-    RVec p; 
+    RVec p;
     std::function<RVec(double)> V;
     // Shifted momentum space kinetic operator
-    RVec T_p; 
+    RVec T_p;
 
     // Constructor
-    HamiltonianFn(HilbertSpace &hs, std::function<RVec(double)> V);
+    HamiltonianFn(HilbertSpace& hs, std::function<RVec(double)> V);
 
     // Construct with no potential
-    HamiltonianFn(HilbertSpace &hs);
+    HamiltonianFn(HilbertSpace& hs);
 
     // Evaluate HFn to H
     Hamiltonian operator()(double u);
 };
+
+template <typename T>
+std::function<RVec(double)> makePotential(T V)
+{
+    return [V](double phase) { return (RVec)V(phase); };
+}
