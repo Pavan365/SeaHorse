@@ -41,23 +41,26 @@ gui: gui.cpp Makefile ./libs/seahorse/libseahorse.a libs/raylib/src/libraylib.a
 	@echo ${GREEN}[BUILDING]${NC} Graphical Version...
 	$(CXX) $(FRAMEWORKS) $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) $(LPATH) -L./libs/raylib/src $(LIBS) -lraylib $@.cpp -o ./bin/$@
 	@cp ./bin/gui ./seahorse.app/Contents/MacOS/seahorse
+	@echo ${GREEN}[RUNNING]${NC}
 	$(RUN) ./bin/$@ $(ARGS)
 
 # Main.cpp file
 release: main.cpp Makefile ./libs/seahorse/libseahorse.a
 	@echo ${GREEN}[BUILDING]${NC} Release Version...
 	$(CXX) main.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) $(LPATH) $(LIBS) -o ./bin/$@
+	@echo ${GREEN}[RUNNING]${NC}
 	$(RUN) ./bin/$@ $(ARGS)
 
 # We don't depend on the lib as we just rebuild/destroy it anyway
 debug: main.cpp Makefile
 	@echo ${GREEN}[BUILDING]${NC} Debug Version... ${RED}[Optimisation flags must match libseahorse]${NC}
 	- $(RUN) rm ./libs/seahorse/libseahorse.a
-	$(CXX) libs/seahorse/src/seahorse.cpp $(STDS) $(DEFS) -O0 $(WFLAGS) $(IPATH) -c -g -o libs/seahorse/libseahorse.o
+	$(CXX) libs/seahorse/src/seahorse.cpp $(STDS) $(DEFS) -UNDEBUG -O0 $(WFLAGS) $(IPATH) -c -g -o libs/seahorse/libseahorse.o
 	$(RUN) ar rvs ./libs/seahorse/libseahorse.a ./libs/seahorse/libseahorse.o
 	$(CXX) main.cpp $(STDS) $(DEFS) -O0 $(WFLAGS) $(IPATH) $(LPATH) $(LIBS) -g -o ./bin/$@
 	- $(RUN) rm ./libs/seahorse/libseahorse.o
 	- $(RUN) rm ./libs/seahorse/libseahorse.a
+	@echo ${GREEN}[RUNNING]${NC}
 	$(RUN) ./bin/$@ $(ARGS)
 
 # NB This must have EXACTLY the same architecture/optimisation flags set as the other builds

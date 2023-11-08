@@ -50,7 +50,7 @@ public:
     void calcEigenvalues();
 
     // Calculating the full spectrum of the matrix up to state `num`
-    void calcSpectrum(int num, bool looped = false, double smallest_eigenvalue = 0);
+    void calcSpectrum(int num, double smallest_eigenvalue = 0, bool looped = false);
 };
 
 // Class describing a controllable Hamiltonian which can be called to generate a specific Hamiltonian matrix

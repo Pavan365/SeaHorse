@@ -42,7 +42,11 @@ RVec Hamiltonian::operator[](int i)
     if (i >= spectrum.numEigvs) // We have't already calculated enough states
     {
         // NB: i+1 as we zero index so the 0th is calcSpectrum(1)
-        calcSpectrum(i + 1);
+        if (spectrum.numEigvs > 0) {
+            calcSpectrum(i + 1, spectrum.eigenvalue(0));
+        } else {
+            calcSpectrum(i + 1);
+        }
     }
     return spectrum.eigenvector(i);
 }
@@ -78,7 +82,7 @@ void Hamiltonian::calcEigenvalues()
 }
 
 // Calculating the full spectrum of the matrix up to state `num`
-void Hamiltonian::calcSpectrum(int num, bool looped, double smallest_eigenvalue)
+void Hamiltonian::calcSpectrum(int num, double smallest_eigenvalue, bool looped)
 {
     // 'Spectra' implementation finds first 'num' eigenvalues/eigenvectors of a SPARSE SYMMETRIC matrix
     auto nev = std::min(std::max(num, 4), (int)H.cols() - 1);
@@ -90,7 +94,7 @@ void Hamiltonian::calcSpectrum(int num, bool looped, double smallest_eigenvalue)
     if (smallest_eigenvalue == 0) {
         smallest_eigenvalue = H.coeffs().minCoeff();
         smallest_eigenvalue = smallest_eigenvalue > 0 ? 0 : smallest_eigenvalue * 2;
-        S_INFO("Minimum eigenvalue estimated from the Hamiltonian minCoeff. Please provide a close estimate (that MUST be lower than the actual value) to speedup calculation. We guessed ", smallest_eigenvalue);
+        S_INFO("Minimum eigenvalue estimated (", smallest_eigenvalue, ") from H. Provide a lower bound to speedup calculation");
     }
     Spectra::SymEigsShiftSolver<Spectra::SparseSymShiftSolve<double>> eigs(op, nev, ncv, smallest_eigenvalue);
     eigs.init();
@@ -120,7 +124,7 @@ void Hamiltonian::calcSpectrum(int num, bool looped, double smallest_eigenvalue)
     } else if (looped == false) // It failed to get any eigenvectors so try again with more lax numbers
     {
         S_INFO("Recalculating eigenspectrum with ", 2 * nev + 5, " states instead of ", nev);
-        calcSpectrum(2 * nev + 5, true);
+        calcSpectrum(2 * nev + 5, smallest_eigenvalue, true);
     }
     return;
 }
