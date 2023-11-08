@@ -11,29 +11,28 @@ HilbertSpace::HilbertSpace(int dim, double xmin, double xmax)
     // 4th order central difference approx for d2/dx2
     Eigen::SparseMatrix<double> Laplace(dim, dim);
     Laplace.reserve(Eigen::VectorXi::Constant(dim, 5));
-    for (auto i = 0; i < dim; i++) {
-        if (i > 1) {
-            Laplace.coeffRef(i - 2, i) = -1;
-        } else {
-            Laplace.coeffRef(i - 2 + dim, i) = -1;
-        }
-        if (i > 0) {
-            Laplace.coeffRef(i - 1, i) = 16;
-        } else {
-            Laplace.coeffRef(i - 1 + dim, i) = 16;
-        }
-        Laplace.coeffRef(i, i) = -30;
-        if (i < dim - 1) {
-            Laplace.coeffRef(i + 1, i) = 16;
-        } else {
-            Laplace.coeffRef(i + 1 - dim, i) = 16;
-        }
-        if (i < dim - 2) {
-            Laplace.coeffRef(i + 2, i) = -1;
-        } else {
-            Laplace.coeffRef(i + 2 - dim, i) = -1;
-        }
-    }
+
+    RMat Lap = RMat::Zero(dim, dim);
+
+    // Set diagonals with periodic boundary conditions
+    Lap.diagonal(-2).setConstant(-1);
+    Lap(0, dim - 2) = -1;
+    Lap(1, dim - 1) = -1;
+
+    Lap.diagonal(-1).setConstant(16);
+    Lap(0, dim - 1) = 16;
+
+    Lap.diagonal().setConstant(-30);
+
+    Lap.diagonal(1).setConstant(16);
+    Lap(dim - 1, 0) = 16;
+
+    Lap.diagonal(2).setConstant(-1);
+    Lap(dim - 1, 1) = -1;
+    Lap(dim - 2, 0) = -1;
+
+    Laplace = Lap.sparseView();
+
     Laplace /= ((m_dx * m_dx) * 12); // rescale derivative
     m_T = Laplace * (-0.5); // p^2/2m = -(d^2/dx^2)(h_bar)^2/2m  with m=1,h_bar=1
 }

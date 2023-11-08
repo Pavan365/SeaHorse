@@ -1,5 +1,4 @@
 #include "libs/seahorse/include/Hamiltonian.h"
-#include "libs/seahorse/include/HilbertSpace.h"
 
 // Actual construction from result
 Spectrum::Spectrum(const RVec& eigs, const Eigen::MatrixXd& eigvs)
@@ -48,46 +47,54 @@ RVec Hamiltonian::operator[](int i)
     return spectrum.eigenvector(i);
 }
 
-// Calculation of only the eigenvalues
+// Calculation of only the eigenvalues WARNING THIS CAN BE VERY COSTLY FOR LARGE DIMENSION
 double Hamiltonian::eigenvalue(int i)
 {
     // Might as well calculate all as its fast and we then cache them
     if (i >= spectrum.numEigs) {
+        S_INFO("Calculating all eigenvalues (This may be very slow for large dimensions)");
         calcEigenvalues();
     }
     return spectrum.eigenvalue(i);
 }
 
-// Actually calculate Eigenvalues efficiently
+// Calculate all eigenvalues
 void Hamiltonian::calcEigenvalues()
 {
+    Timer timer;
+    timer.Start();
     // Finds all eigenvalues for the hamiltonian
     // We can't use tridiag solver as we use a 4th order d2/dx2 approx
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(H.size());
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver;
 
     eigensolver.compute(H, Eigen::EigenvaluesOnly);
 
     if (eigensolver.info() != Eigen::Success)
         std::cerr << "Failed to calculate full spectrum";
-
     spectrum.eigenvalues = eigensolver.eigenvalues();
     spectrum.numEigs = spectrum.eigenvalues.size();
+
+    timer.Stop("calcEigenvalues");
 }
 
 // Calculating the full spectrum of the matrix up to state `num`
-void Hamiltonian::calcSpectrum(int num, bool looped)
+void Hamiltonian::calcSpectrum(int num, bool looped, double smallest_eigenvalue)
 {
     // 'Spectra' implementation finds first 'num' eigenvalues/eigenvectors of a SPARSE SYMMETRIC matrix
     auto nev = std::min(std::max(num, 4), (int)H.cols() - 1);
-    auto ncv = std::min(3 * nev, (int)H.cols());
-    // Construct matrix operation object using the wrapper class SparseSymMatProd
-    Spectra::SparseSymMatProd<double> op(H);
-    // Construct eigen solver object, requesting the smallest 'num' eigenvalues
-    Spectra::SymEigsSolver<Spectra::SparseSymMatProd<double>> eigs(op, nev,
-        ncv);
-    // Initialize and compute
+    auto ncv = std::min(4 * nev, (int)H.cols());
+
+    // Construct matrix operation object using the wrapper class SparseSymShiftSolve
+    Spectra::SparseSymShiftSolve<double> op(H);
+    // estimate the smallest eigenvalue by the smallest element in the matrix
+    if (smallest_eigenvalue == 0) {
+        smallest_eigenvalue = H.coeffs().minCoeff();
+        smallest_eigenvalue = smallest_eigenvalue > 0 ? 0 : smallest_eigenvalue * 2;
+        S_INFO("Minimum eigenvalue estimated from the Hamiltonian minCoeff. Please provide a close estimate (that MUST be lower than the actual value) to speedup calculation. We guessed ", smallest_eigenvalue);
+    }
+    Spectra::SymEigsShiftSolver<Spectra::SparseSymShiftSolve<double>> eigs(op, nev, ncv, smallest_eigenvalue);
     eigs.init();
-    int nconv = eigs.compute(Spectra::SortRule::SmallestAlge);
+    int nconv = eigs.compute(Spectra::SortRule::LargestAlge);
 
     // Retrieve results
     if (eigs.info() == Spectra::CompInfo::NotConverging) {

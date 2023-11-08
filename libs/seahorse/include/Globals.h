@@ -55,14 +55,14 @@ public:
     Timer()
         : start(std::chrono::system_clock::now()) {};
     void Start() { start = std::chrono::system_clock::now(); };
-    void Elapsed(std::string msg = " seconds elapsed")
+    void Stop(std::string msg = "")
     {
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
-                            std::chrono::system_clock::now() - start)
-                            .count()
-            / 1e6;
-        S_INFO(duration, " ", msg);
+        S_INFO(Elapsed(), "seconds -> ", msg);
     };
+    double Elapsed()
+    {
+        return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - start).count() / 1e6;
+    }
 };
 
 // void GenerateFontFile(std::string fontFile = "resources/UbuntuMonoBold.ttf")

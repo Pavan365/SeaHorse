@@ -1,15 +1,19 @@
 #pragma once
 
 #include "libs/seahorse/include/HilbertSpace.h"
+#include "libs/seahorse/include/Globals.h"
 
 // Spectra
-#include <libs/spectra/include/Spectra/MatOp/SparseSymMatProd.h>
-#include <libs/spectra/include/Spectra/SymEigsSolver.h>
+// #include <libs/spectra/include/Spectra/MatOp/SparseSymMatProd.h>
+// #include <libs/spectra/include/Spectra/SymEigsSolver.h>
+
+#include <libs/spectra/include/Spectra/MatOp/SparseSymShiftSolve.h>
+#include <libs/spectra/include/Spectra/SymEigsShiftSolver.h>
 
 class Spectrum {
 public:
     RVec eigenvalues = RVec::Zero(2);
-    int numEigs = 0;
+    int numEigs = -1;
 
     Eigen::MatrixXd eigenvectors = Eigen::MatrixXd::Zero(2, 2);
     int numEigvs = 0;
@@ -46,7 +50,7 @@ public:
     void calcEigenvalues();
 
     // Calculating the full spectrum of the matrix up to state `num`
-    void calcSpectrum(int num, bool looped = false);
+    void calcSpectrum(int num, bool looped = false, double smallest_eigenvalue = 0);
 };
 
 // Class describing a controllable Hamiltonian which can be called to generate a specific Hamiltonian matrix
