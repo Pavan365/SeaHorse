@@ -4,7 +4,6 @@
 
 int main()
 {
-
     Timer timer;
     timer.Start();
 
@@ -36,15 +35,8 @@ int main()
     Cost cost = Cost(H0[2]);
     SaveFn saver = [](const Optimiser& opt) { S_INFO(opt.num_iterations, "\tfid= ", opt.bestControl.fid); };
 
-    auto rand_control = basis.control(RVec::Zero(10));
-    for (auto _ = 0; _ < 50; _++) {
-        stepper.reset();
-        stepper.evolve(rand_control);
-    }
-    S_INFO(fidelity(stepper.state(), H0[2]));
-
-    // dCRAB optimiser = dCRAB(basis, stepper, stopper, cost, saver);
-    // optimiser.optimise(5);
+    dCRAB optimiser = dCRAB(basis, stepper, stopper, cost, saver);
+    optimiser.optimise(5);
 
     timer.Stop("Main");
     return 0;
