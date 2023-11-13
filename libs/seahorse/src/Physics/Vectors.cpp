@@ -4,7 +4,7 @@
 */
 
 #pragma once
-#include "libs/seahorse/include/Globals.h"
+#include "libs/seahorse/include/Utils/Globals.h"
 
 // Allow maths style notation on real/complex Vecs + Scalars
 // We promote the type to complex only where needed
@@ -32,6 +32,14 @@ inline const auto exp(const RVec& v) { return v.array().exp(); }
 inline const auto exp(const CVec& v) { return v.array().exp(); }
 inline const auto abs2(const RVec& v) { return v.array().abs2(); }
 inline const auto abs2(const CVec& v) { return v.array().abs2(); }
+
+template <typename Derived, typename Derived2>
+inline const auto
+fidelity(const Eigen::MatrixBase<Derived>& psi_f,
+    const Eigen::MatrixBase<Derived2>& psi_t)
+{
+    return std::norm(psi_f.dot(psi_t));
+}
 
 // These only really make sense on the Reals
 inline const auto cos(const RVec& v) { return v.array().cos(); }

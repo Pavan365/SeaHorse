@@ -1,7 +1,7 @@
 #pragma once
 
-#include "libs/seahorse/include/HilbertSpace.h"
-#include "libs/seahorse/include/Globals.h"
+#include "libs/seahorse/include/Physics/HilbertSpace.h"
+#include "libs/seahorse/include/Utils/Globals.h"
 
 // Spectra
 // #include <libs/spectra/include/Spectra/MatOp/SparseSymMatProd.h>

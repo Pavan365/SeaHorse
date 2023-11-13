@@ -1,4 +1,4 @@
-#include "libs/seahorse/include/HilbertSpace.h"
+#include "libs/seahorse/include/Physics/HilbertSpace.h"
 
 // Constructors
 HilbertSpace::HilbertSpace(int dim, double xmin, double xmax)

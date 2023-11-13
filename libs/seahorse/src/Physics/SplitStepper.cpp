@@ -1,4 +1,4 @@
-#include "libs/seahorse/include/SplitStepper.h"
+#include "libs/seahorse/include/Physics/SplitStepper.h"
 
 // Constructor
 SplitStepper::SplitStepper() { }
@@ -47,8 +47,7 @@ void SplitStepper::step(double u) // Move forward a single step
 // This combines T/2 ifft fft T/2 between steps to save computation.
 void SplitStepper::evolve(const RVec& control)
 {
-    std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-
+    // Timer timer;
     // Initial half step T/2
     m_fft.fwd(m_mombuf, m_psi_f);
     m_mombuf = m_mombuf.array().cwiseProduct(m_T_exp_2.array());
@@ -68,7 +67,5 @@ void SplitStepper::evolve(const RVec& control)
     m_mombuf = m_mombuf.array().cwiseProduct(m_T_exp_2.array());
     m_fft.inv(m_psi_f, m_mombuf);
 
-    S_INFO("Stepped ", control.size() + 1, " times in ",
-        ((std::chrono::system_clock::now() - start).count()) / 1e6,
-        " seconds");
+    // S_INFO("Stepped ", control.size(), " times in ", timer.Elapsed(), " seconds");
 }

@@ -47,7 +47,7 @@ gui: gui.cpp Makefile ./libs/seahorse/libseahorse.a libs/raylib/src/libraylib.a
 # Main.cpp file
 release: main.cpp Makefile ./libs/seahorse/libseahorse.a
 	@echo ${GREEN}[BUILDING]${NC} Release Version...
-	$(CXX) main.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) $(LPATH) $(LIBS) -o ./bin/$@
+	$(CXX) main.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) $(LPATH) $(LIBS) -g -o ./bin/$@
 	@echo ${GREEN}[RUNNING]${NC}
 	$(RUN) ./bin/$@ $(ARGS)
 
@@ -66,7 +66,7 @@ debug: main.cpp Makefile
 # NB This must have EXACTLY the same architecture/optimisation flags set as the other builds
 libs/seahorse/libseahorse.a : $(shell find ./libs/seahorse -type f ! -name libseahorse.a) Makefile libs/eigen libs/spectra
 	@echo ${GREEN}[BUILDING]${NC} Lib Seahorse...
-	$(CXX) libs/seahorse/src/seahorse.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -c -o libs/seahorse/libseahorse.o
+	$(CXX) libs/seahorse/src/seahorse.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -c -g -o libs/seahorse/libseahorse.o
 	$(RUN) ar rvs libs/seahorse/libseahorse.a libs/seahorse/libseahorse.o
 	- $(RUN) rm libs/seahorse/libseahorse.o
 

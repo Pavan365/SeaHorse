@@ -1,8 +1,7 @@
 #pragma once
 
+#include "libs/seahorse/include/seahorse.h"
 #include "libs/raygui/src/raygui.h"
-#include "libs/seahorse/include/Globals.h"
-#include "libs/seahorse/src/Vectors.cpp"
 #include <iomanip>
 #include <thread>
 #include <unistd.h>

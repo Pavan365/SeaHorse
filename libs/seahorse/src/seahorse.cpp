@@ -2,16 +2,17 @@
 #include <complex>
 #include <format>
 #include <iostream>
-using namespace std::complex_literals;
 
 // Seahorse Components - actual implementations
-#include "libs/seahorse/include/Globals.h"
-#include "libs/seahorse/src/Basis.cpp"
-#include "libs/seahorse/src/Hamiltonian.cpp"
-#include "libs/seahorse/src/HilbertSpace.cpp"
-#include "libs/seahorse/src/Optimiser.cpp"
-#include "libs/seahorse/src/Random.cpp"
-#include "libs/seahorse/src/SplitStepper.cpp"
-#include "libs/seahorse/src/Stepper.cpp"
-#include "libs/seahorse/src/Vectors.cpp"
-#include "libs/seahorse/src/dCRAB.cpp"
+#include "libs/seahorse/include/Utils/Globals.h"
+#include "libs/seahorse/src/Optimisation/Basis.cpp"
+#include "libs/seahorse/src/Physics/Hamiltonian.cpp"
+#include "libs/seahorse/src/Physics/HilbertSpace.cpp"
+#include "libs/seahorse/src/Optimisation/Optimiser.cpp"
+#include "libs/seahorse/src/Utils/Random.cpp"
+#include "libs/seahorse/src/Physics/SplitStepper.cpp"
+#include "libs/seahorse/src/Physics/Stepper.cpp"
+#include "libs/seahorse/src/Optimisation/Stopper.cpp"
+#include "libs/seahorse/src/Optimisation/Cost.cpp"
+#include "libs/seahorse/src/Physics/Vectors.cpp"
+#include "libs/seahorse/src/Optimisation/dCRAB.cpp"

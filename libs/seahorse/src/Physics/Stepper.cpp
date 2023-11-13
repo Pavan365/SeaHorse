@@ -1,5 +1,5 @@
-#include "libs/seahorse/include/Stepper.h"
-#include "libs/seahorse/src/Vectors.cpp"
+#include "libs/seahorse/include/Physics/Stepper.h"
+#include "libs/seahorse/src/Physics/Vectors.cpp"
 
 // Constructor
 Stepper::Stepper() {}
@@ -8,7 +8,6 @@ Stepper::Stepper(double dt, double dx, const CVec& psi_0)
 {
 }
 
-Stepper::~Stepper() {}
 const CVec Stepper::initial_state() const { return m_psi_0; };
 const CVec Stepper::state() const { return m_psi_f; };
 

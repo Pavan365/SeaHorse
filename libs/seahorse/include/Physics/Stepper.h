@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "libs/seahorse/include/Globals.h"
-#include "libs/seahorse/include/Hamiltonian.h"
+#include "libs/seahorse/include/Utils/Globals.h"
+#include "libs/seahorse/include/Physics/Hamiltonian.h"
 
 #include <libs/eigen/Eigen/Core>
 #include <libs/eigen/unsupported/Eigen/FFT>
@@ -23,7 +23,7 @@ public:
     Stepper();
     Stepper(double dt, double dx, const CVec& psi_0);
 
-    virtual ~Stepper() = 0;
+    virtual ~Stepper() {};
 
     // Revert any internal state to orignal state or to new psi_0
     virtual void reset() = 0;

@@ -16,4 +16,5 @@ struct randGen {
     double operator()();
 };
 
+// global random generator [0-1]
 extern randGen rands;

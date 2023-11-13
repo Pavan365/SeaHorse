@@ -10,6 +10,8 @@ using CVec = Eigen::VectorXcd;
 using RMat = Eigen::MatrixXd;
 using CMat = Eigen::MatrixXcd;
 
+using namespace std::complex_literals;
+
 #define S_INFO(...) S_LOG_IMPL("\033[92m[INFO]\033[0m ", __LINE__, __FILE__, __VA_ARGS__)
 #define S_ERROR(...) S_LOG_IMPL("\033[91m[ERROR]\033[0m", __LINE__, __FILE__, __VA_ARGS__)
 #define S_FATAL(...)                                                    \
@@ -57,7 +59,7 @@ public:
     void Start() { start = std::chrono::system_clock::now(); };
     void Stop(std::string msg = "")
     {
-        S_INFO(Elapsed(), "seconds -> ", msg);
+        S_INFO(Elapsed(), " seconds, ", msg);
     };
     double Elapsed()
     {

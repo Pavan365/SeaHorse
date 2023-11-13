@@ -1,4 +1,4 @@
-#include "libs/seahorse/include/Hamiltonian.h"
+#include "libs/seahorse/include/Physics/Hamiltonian.h"
 
 // Actual construction from result
 Spectrum::Spectrum(const RVec& eigs, const Eigen::MatrixXd& eigvs)
@@ -90,11 +90,9 @@ void Hamiltonian::calcSpectrum(int num, double smallest_eigenvalue, bool looped)
 
     // Construct matrix operation object using the wrapper class SparseSymShiftSolve
     Spectra::SparseSymShiftSolve<double> op(H);
-    // estimate the smallest eigenvalue by the smallest element in the matrix
+    // estimate the smallest eigenvalue by the smallest potential value (As a free particle has positive-definite H)
     if (smallest_eigenvalue == 0) {
-        smallest_eigenvalue = H.coeffs().minCoeff();
-        smallest_eigenvalue = smallest_eigenvalue > 0 ? 0 : smallest_eigenvalue * 2;
-        S_INFO("Minimum eigenvalue estimated (", smallest_eigenvalue, ") from H. Provide a lower bound to speedup calculation");
+        smallest_eigenvalue = V.minCoeff();
     }
     Spectra::SymEigsShiftSolver<Spectra::SparseSymShiftSolve<double>> eigs(op, nev, ncv, smallest_eigenvalue);
     eigs.init();
@@ -121,6 +119,16 @@ void Hamiltonian::calcSpectrum(int num, double smallest_eigenvalue, bool looped)
             spectrum.eigenvectors = eigv;
             spectrum.numEigvs = eigv.cols();
         }
+
+        // check we have the cannonical eigenvectors for each eigenvalue
+        // we want the real vectors which alternate in sign
+        for (int i = 0; i < spectrum.numEigvs; i++) {
+            auto bias = spectrum.eigenvector(i).head(eigv.rows()/2).mean();
+            if (bias*pow(-1,i%2) < 0) {
+                spectrum.eigenvectors.col(i) *= -1;
+            }
+        }
+
     } else if (looped == false) // It failed to get any eigenvectors so try again with more lax numbers
     {
         S_INFO("Recalculating eigenspectrum with ", 2 * nev + 5, " states instead of ", nev);

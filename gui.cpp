@@ -1,6 +1,5 @@
-#include "libs/seahorse/include/Globals.h"
-#include "libs/seahorse/seahorse.h"
-#include "libs/seahorse/src/GuiComponents.cpp"
+#include "gui/GuiComponents.cpp"
+#include "libs/seahorse/include/seahorse.h"
 
 #include "libs/raygui/src/raygui.h"
 #include "libs/raylib/src/raylib.h"
@@ -25,8 +24,13 @@ struct SettingsState {
         HilbertSpace hs = HilbertSpace(dim, xlim);
         const RVec x = hs.x();
         V0 = [&, x](double phase) {
-            return RVec(-0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2));
+          return RVec(-0.5 * depth * (cos(2 * k * (x - phase)) + 1) *
+                      box(x - phase, -PI / k / 2, PI / k / 2));
         };
+
+        HamiltonianFn H(hs, V0);
+        Hamiltonian H0 = H(0);
+        psi_t = H0[0];
     }
 
     // spectrum variables
@@ -39,7 +43,7 @@ struct SettingsState {
 
         HamiltonianFn H(hs, V0);
         Hamiltonian H0 = H(0);
-        H0.calcSpectrum(15);
+        H0.calcSpectrum(15, -depth);
 
         plot_spectrum.clearLines();
         plot_spectrum.plot(x, H0.V, "V (0)", BLACK, 1, 4, 0);
@@ -57,18 +61,21 @@ struct SettingsState {
     PerfStats perfStats = PerfStats(); // gets/holds performance stats
 
     // settings variables
-    int dim = 1 << 12;
+    int dim = 1 << 11;
     const int k = sqrt(2);
     double xlim = PI / k / 2 * 4;
 
-    double dt = 0.001;
-    int num_steps = 1e4;
+    double dt = 0.002;
+    int num_steps = 5e3;
 
     int depth = 400;
 
     std::string psi_0 = "H[0];H[1];H[2];H[0]+H[1]";
     int psi_0_active = 0;
     bool psi_0_edit = false;
+
+    CVec psi_t;
+
 };
 
 struct EvolutionState {
@@ -86,9 +93,10 @@ public:
     bool numStepsEdit = false;
     bool evolve = false;
 
-    std::string fid = "Fidelity: 0.992";
+    std::string fid = "Fid: NaN";
 
     std::string controls = "ZERO;SIN;COS;RAMP";
+    std::vector<RVec> controls_vec;
     int scroll = 0;
     int scroll_selected = 0;
     int scroll_old_selected = 0;
@@ -107,6 +115,8 @@ public:
         x = hs.x();
         t = RVec::LinSpaced(state->num_steps, 0, state->num_steps * state->dt);
 
+        controls_vec = { t * 0, sin(t).eval(), cos(t).eval(), RVec::LinSpaced(t.size(), 0, 10) };
+
         HamiltonianFn H(hs, state->V0);
         Hamiltonian H0 = H(0);
 
@@ -121,10 +131,35 @@ public:
 
         psireal = plotSpace.plot(x, stepper.state().real(), "Real", RED);
         psiimag = plotSpace.plot(x, stepper.state().imag(), "Imag", BLUE);
-        psiabs = plotSpace.plot(x, stepper.state().cwiseAbs(), "Abs2", GREEN);
+        psiabs = plotSpace.plot(x, stepper.state().cwiseAbs2(), "Abs2", GREEN);
         vline = plotSpace.plot(x, state->V0(control[currentStep]), "V", BLACK, 1, 4, 0);
         vline->ignoreGraphLims();
         plotControl.plot(t, control, "", BLACK);
+    }
+
+    void optimise()
+    {
+        auto hs = HilbertSpace(state->dim, state->xlim);
+        x = hs.x();
+        HamiltonianFn H(hs, state->V0);
+        Hamiltonian H0 = H(0);
+
+        CVec psi_0 = state->psi_0_active == 0 ? H0[0]
+            : state->psi_0_active == 1        ? H0[1]
+            : state->psi_0_active == 2        ? H0[2]
+                                              : H0[0] + H0[1];
+
+        SplitStepper stepper = SplitStepper(state->dt, H, psi_0);
+        Basis basis = Basis::TRIG(t, 5, 10);
+        Stopper stopper = Stopper(0.99, 100);
+        Cost cost = Cost(state->psi_t);
+        SaveFn saver = [](const Optimiser& opt) { S_INFO(opt.num_iterations, "\tfid= ", opt.bestControl.fid); };
+
+        dCRAB optimiser = dCRAB(basis, stepper, stopper, cost, saver);
+        optimiser.optimise(5);
+
+        controls_vec.push_back(optimiser.bestControl.control);
+        controls += TextFormat(";dCRAB: %.2f", optimiser.bestControl.fid);
     }
 
     void reset()
@@ -143,28 +178,29 @@ public:
         stepper.reset(psi_0);
         psireal->updateYData(stepper.state().real());
         psiimag->updateYData(stepper.state().imag());
-        psiabs->updateYData(stepper.state().cwiseAbs());
+        psiabs->updateYData(stepper.state().cwiseAbs2());
         vline->updateYData(state->V0(control[currentStep]));
     }
-    void setControl()
-    {
-        control = scroll_selected == 0 ? t * 0 : scroll_selected == 1 ? sin(t).eval()
-            : scroll_selected == 2                                    ? cos(t).eval()
-                                                                      : RVec::LinSpaced(t.size(), 0, 10);
+    void setControl() {
+        control = controls_vec[scroll_selected];
         plotControl.clearLines();
         plotControl.plot(t, control, "", BLACK);
         reset();
+
+        stepper.evolve(control);
+        fid = TextFormat("Fid: %.2f", fidelity(state->psi_t, stepper.state()));
+        stepper.reset();
     }
     void step()
     {
-        if (currentStep+numSteps < t.size()) {
+        if (currentStep + numSteps < t.size()) {
             for (auto i = 0; i < numSteps; i++) {
                 stepper.step(control[currentStep]);
                 currentStep++;
             }
             psireal->updateYData(stepper.state().real());
             psiimag->updateYData(stepper.state().imag());
-            psiabs->updateYData(stepper.state().cwiseAbs());
+            psiabs->updateYData(stepper.state().cwiseAbs2());
             vline->updateYData(state->V0(control[currentStep]));
             progress = (float)currentStep / (float)t.size();
         } else {
@@ -173,13 +209,18 @@ public:
             stepper.reset();
         }
     }
-    void update()
-    {
+    void update() {
+        // If we reselect the current one, don't do anything
+        if (scroll_selected == -1) {
+            scroll_selected = scroll_old_selected;
+        }
         if (scroll_selected != scroll_old_selected) {
             setControl();
             scroll_old_selected = scroll_selected;
         }
-        if (evolve) {step();}
+        if (evolve) {
+            step();
+        }
     }
 };
 
@@ -266,10 +307,15 @@ int main()
             evolution.numStepsEdit = !evolution.numStepsEdit;
         GuiCheckBox(Rectangle { settings.rect_evolution.x + 88 + padding * 2, settings.rect_evolution.y + 272, 24, 24 }, "Evolve", &evolution.evolve);
 
-        if (GuiButton(Rectangle { settings.rect_evolution.x + 220, settings.rect_evolution.y + 272, 56, 24 }, "Reset"))
+        if (GuiButton(Rectangle { settings.rect_evolution.x + 200, settings.rect_evolution.y + 272, 56, 24 }, "Reset"))
             evolution.reset();
 
-        GuiLabel(Rectangle { settings.rect_evolution.x + 325, settings.rect_evolution.y + 272, 112, 24 }, evolution.fid.c_str());
+        if (GuiButton(Rectangle { settings.rect_evolution.x + 270,
+                          settings.rect_evolution.y + 272, 56, 24 },
+                "dCRAB"))
+            evolution.optimise();
+
+        GuiLabel(Rectangle { settings.rect_evolution.x + 340, settings.rect_evolution.y + 272, 112, 24 }, evolution.fid.c_str());
 
         GuiProgressBar(Rectangle { settings.rect_evolution.x + 8, settings.rect_evolution.y + 440, 304, 12 }, NULL, NULL, &evolution.progress, 0, 1);
 
