@@ -48,3 +48,15 @@ inline const auto box(const RVec& x, double min, double max)
 {
     return (x.array().cwiseLess(max).cast<double>() + x.array().cwiseGreater(min).cast<double>()) - 1;
 }
+inline const auto planck_taper(const RVec& v, double taper_ratio = 1.0 / 8.0)
+{
+    auto N = v.size();
+    RVec ret = RVec::Ones(N);
+
+    for (int i = 0; i < taper_ratio * N/2; i++) {
+        ret(i) = 0.5 * (1.0 - cos(2 * PI * i / (taper_ratio * N)));
+        ret(N - i - 1) = ret(i);
+    }
+
+    return RVec(v.array()*ret.array());
+}

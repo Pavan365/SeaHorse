@@ -8,6 +8,7 @@ private:
     // V is defined on real space, and is the actual potential
     // T is defined on shifted frequency space and is the kinetic energy operator
     std::function<RVec(double)> m_V;
+    RVec imagPot;
     CVec m_T_exp;
     CVec m_T_exp_2;
 
@@ -17,7 +18,7 @@ private:
 
 public:
     // Constructor
-    SplitStepper(double dt, HamiltonianFn& H, const CVec& psi_0);
+    SplitStepper(double dt, HamiltonianFn& H, const CVec& psi_0, bool use_imag_pot = true);
     SplitStepper();
 
     // Discard any internal state changed to date
@@ -29,5 +30,4 @@ public:
     // Optimised steps but can't provide intermediate step wavefunctions
     // This combines T/2 ifft fft T/2 between steps to save computation.
     void evolve(const RVec& control) override;
-
 };
