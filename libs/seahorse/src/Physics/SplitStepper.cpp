@@ -76,7 +76,7 @@ void SplitStepper::evolve(const RVec& control)
     // Finishing out the last V,T/2
     m_fft.inv(m_psi_f, m_mombuf);
     m_psi_f = m_psi_f.array()
-                  .cwiseProduct((-1.0i * m_dt * m_V(control[control.size()]).array()).exp())
+                  .cwiseProduct((-1.0i * m_dt * m_V(control[control.size() - 1]).array()).exp())
                   .cwiseProduct(imagPot.array());
     m_fft.fwd(m_mombuf, m_psi_f);
     m_mombuf = m_mombuf.array().cwiseProduct(m_T_exp_2.array());
