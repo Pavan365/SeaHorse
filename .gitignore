@@ -37,3 +37,6 @@
 # Executables or analysis
 /output/*
 /bin/*
+
+# Ignore all rawtext as they are generated on the fly for includes
+*.rawtext
