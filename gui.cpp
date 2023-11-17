@@ -23,14 +23,13 @@ struct SettingsState {
     {
         HilbertSpace hs = HilbertSpace(dim, xlim);
         const RVec x = hs.x();
-        V0 = [&, x](double phase) {
-          return RVec(-0.5 * depth * (cos(2 * k * (x - phase)) + 1) *
-                      box(x - phase, -PI / k / 2, PI / k / 2));
+        V0 = [=](double phase) {
+            return RVec(-0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2));
         };
 
         HamiltonianFn H(hs, V0);
         Hamiltonian H0 = H(0);
-        psi_t = H0[0];
+        psi_t = H0[2];
     }
 
     // spectrum variables
@@ -66,7 +65,7 @@ struct SettingsState {
     double xlim = PI / k / 2 * 4;
 
     double dt = 0.002;
-    int num_steps = 5e3;
+    int num_steps = 1.5e3;
 
     int depth = 400;
 
@@ -75,7 +74,6 @@ struct SettingsState {
     bool psi_0_edit = false;
 
     CVec psi_t;
-
 };
 
 struct EvolutionState {
@@ -115,7 +113,7 @@ public:
         x = hs.x();
         t = RVec::LinSpaced(state->num_steps, 0, state->num_steps * state->dt);
 
-        controls_vec = { t * 0, sin(t).eval(), cos(t).eval(), RVec::LinSpaced(t.size(), 0, 10) };
+        controls_vec = { t * 0, planck_taper(sin(t).eval()), planck_taper(cos(t)), planck_taper(RVec::LinSpaced(t.size(), 0, 10)) };
 
         HamiltonianFn H(hs, state->V0);
         Hamiltonian H0 = H(0);
@@ -129,9 +127,9 @@ public:
         stepper = SplitStepper(state->dt, H, psi_0);
         control = RVec::Zero(state->num_steps);
 
-        psireal = plotSpace.plot(x, stepper.state().real(), "Real", RED);
-        psiimag = plotSpace.plot(x, stepper.state().imag(), "Imag", BLUE);
-        psiabs = plotSpace.plot(x, stepper.state().cwiseAbs2(), "Abs2", GREEN);
+        psireal = plotSpace.plot(x, stepper.state().real(), "Real", RED, 0.5);
+        psiimag = plotSpace.plot(x, stepper.state().imag(), "Imag", BLUE, 0.5);
+        psiabs = plotSpace.plot(x, stepper.state().cwiseAbs(), "Abs2", VIOLET);
         vline = plotSpace.plot(x, state->V0(control[currentStep]), "V", BLACK, 1, 4, 0);
         vline->ignoreGraphLims();
         plotControl.plot(t, control, "", BLACK);
@@ -150,7 +148,7 @@ public:
                                               : H0[0] + H0[1];
 
         SplitStepper stepper = SplitStepper(state->dt, H, psi_0);
-        Basis basis = Basis::TRIG(t, 5, 10);
+        Basis basis = Basis::TRIG(t, 8.4, 10);
         Stopper stopper = Stopper(0.99, 100);
         Cost cost = Cost(state->psi_t);
         SaveFn saver = [](const Optimiser& opt) { S_INFO(opt.num_iterations, "\tfid= ", opt.bestControl.fid); };
@@ -178,10 +176,11 @@ public:
         stepper.reset(psi_0);
         psireal->updateYData(stepper.state().real());
         psiimag->updateYData(stepper.state().imag());
-        psiabs->updateYData(stepper.state().cwiseAbs2());
+        psiabs->updateYData(stepper.state().cwiseAbs());
         vline->updateYData(state->V0(control[currentStep]));
     }
-    void setControl() {
+    void setControl()
+    {
         control = controls_vec[scroll_selected];
         plotControl.clearLines();
         plotControl.plot(t, control, "", BLACK);
@@ -200,7 +199,7 @@ public:
             }
             psireal->updateYData(stepper.state().real());
             psiimag->updateYData(stepper.state().imag());
-            psiabs->updateYData(stepper.state().cwiseAbs2());
+            psiabs->updateYData(stepper.state().cwiseAbs());
             vline->updateYData(state->V0(control[currentStep]));
             progress = (float)currentStep / (float)t.size();
         } else {
@@ -209,7 +208,8 @@ public:
             stepper.reset();
         }
     }
-    void update() {
+    void update()
+    {
         // If we reselect the current one, don't do anything
         if (scroll_selected == -1) {
             scroll_selected = scroll_old_selected;
