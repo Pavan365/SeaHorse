@@ -3,9 +3,8 @@
 #include "libs/seahorse/include/Optimisation/Basis.h"
 #include "libs/seahorse/include/Optimisation/Cost/Cost.h"
 #include "libs/seahorse/include/Optimisation/Optimiser.h"
-#include "libs/seahorse/include/Physics/SplitStepper.h"
+#include "libs/seahorse/include/Physics/Stepper.h"
 #include "libs/seahorse/include/Utils/Globals.h"
-#include <tuple>
 
 // Implementation of a dressed CRAB optimiser
 class dCRAB : public Optimiser {

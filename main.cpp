@@ -32,9 +32,11 @@ int main()
     CVec psi_0 = H0[0] + H0[1];
 
     SplitStepper stepper = SplitStepper(dt, H, psi_0);
+
     Cost cost = StateTransfer(stepper, psi_0, H0[0]) + 1e-10 * makeBoundaries(-1, 1) + 1e-10 * makeRegularisation();
 
     Basis basis = Basis::TRIG(t, 8.5, 10);
+
     Stopper stopper = Stopper(0.9, 100, 20);
     SaveFn saver = [](const Optimiser& opt) {
         S_INFO(opt.num_iterations, "\tfid= ", opt.bestControl.fid);

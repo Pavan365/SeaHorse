@@ -26,12 +26,12 @@ Cost operator+(ControlCost c, StateTransfer& s)
 
 Cost operator+(Cost c, ControlCost cc)
 {
-    c.components.push_back(cc);
+    c.addCost(cc);
     return c;
 }
 
 Cost operator+(ControlCost cc, Cost c)
 {
-    c.components.push_back(cc);
+    c.addCost(cc);
     return c;
 }
