@@ -1,4 +1,6 @@
 // #include "libs/seahorse/src/seahorse.cpp" // use for full integration [slow build, but might fix weird errors]
+#include "libs/seahorse/include/Optimisation/Stopper/StopComponent.h"
+#include "libs/seahorse/include/Optimisation/Stopper/Stopper.h"
 #include "libs/seahorse/include/seahorse.h"
 
 // We include the file as `unsigned char sourceFile[]`
@@ -37,7 +39,8 @@ int main()
 
     Basis basis = Basis::TRIG(t, 8.5, 10);
 
-    Stopper stopper = Stopper(0.9, 100, 20);
+    Stopper stopper = StallStopper(2) + (FidStopper(0.99) + IterStopper(100)) + StallStopper(20);
+
     SaveFn saver = [](const Optimiser& opt) {
         S_INFO(opt.num_iterations, "\tfid= ", opt.bestControl.fid);
     };

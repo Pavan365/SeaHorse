@@ -1,10 +1,11 @@
 #pragma once
 
 #include "libs/seahorse/include/Optimisation/Cost/Cost.h"
-#include "libs/seahorse/include/Optimisation/Stopper.h"
+#include "libs/seahorse/include/Optimisation/Stopper/Stopper.h"
 #include "libs/seahorse/include/Physics/SplitStepper.h"
 #include "libs/seahorse/include/Utils/Globals.h"
 
+class Optimiser;
 typedef std::function<void(const Optimiser&)> SaveFn;
 
 class Optimiser {
@@ -25,7 +26,7 @@ public:
     int fpp = 0;
 
 public:
-    // Constructor - we need one for each stepper derived type
+    // Constructor
     Optimiser(Stopper stopper, Cost cost, SaveFn saver);
 
     virtual ~Optimiser() = 0;
