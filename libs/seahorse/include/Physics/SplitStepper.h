@@ -16,6 +16,9 @@ private:
     Eigen::FFT<double> m_fft;
     CVec m_mombuf;
 
+  protected:
+    // Implementing the clone pattern within derived classes
+    virtual Stepper* clone_impl() const override { return new SplitStepper(*this); }
 public:
     // Constructor
     SplitStepper(double dt, HamiltonianFn& H, const CVec& psi_0, bool use_imag_pot = true);

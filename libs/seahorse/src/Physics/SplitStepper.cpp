@@ -4,13 +4,9 @@
 SplitStepper::SplitStepper() { }
 
 SplitStepper::SplitStepper(double dt, HamiltonianFn& H, const CVec& psi_0, bool use_imag_pot)
-    : Stepper(dt, H.hs.dx(), psi_0)
+    : Stepper(dt, H.hs.dx(), psi_0.normalized())
     , m_V(H.V)
 {
-    if ((psi_0.norm() - 1.0) > 1e-10) {
-        S_INFO("PSI_0 automatically normalised (from ", psi_0.norm(), ")");
-    }
-    m_psi_f = psi_0 / psi_0.norm(); // initialise with starting state
     m_fft.fwd(m_mombuf, m_psi_f);
     m_T_exp_2 = (-0.5i * dt * H.T_p.array()).exp();
     // m_T_exp = m_T_exp_2.array().square(); uses e^2a = (e^a)^2 to avoid exp again
@@ -33,9 +29,6 @@ void SplitStepper::reset()
 
 void SplitStepper::reset(const CVec& psi_0)
 {
-    if ((psi_0.norm() - 1.0) > 1e-10) {
-        S_INFO("PSI_0 automatically normalised (from ", psi_0.norm(), ")");
-    }
     m_psi_0 = psi_0 / psi_0.norm();
     SplitStepper::reset();
 }

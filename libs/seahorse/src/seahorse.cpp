@@ -13,6 +13,6 @@
 #include "libs/seahorse/src/Physics/SplitStepper.cpp"
 #include "libs/seahorse/src/Physics/Stepper.cpp"
 #include "libs/seahorse/src/Optimisation/Stopper.cpp"
-#include "libs/seahorse/src/Optimisation/Cost.cpp"
+#include "libs/seahorse/src/Optimisation/Cost/Cost.cpp"
 #include "libs/seahorse/src/Physics/Vectors.cpp"
 #include "libs/seahorse/src/Optimisation/dCRAB.cpp"

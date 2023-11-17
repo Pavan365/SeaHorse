@@ -10,7 +10,7 @@
 
 // Seahorse - just headers
 #include "libs/seahorse/include/Optimisation/Basis.h"
-#include "libs/seahorse/include/Optimisation/Cost.h"
+#include "libs/seahorse/include/Optimisation/Cost/Cost.h"
 #include "libs/seahorse/include/Optimisation/Optimiser.h"
 #include "libs/seahorse/include/Optimisation/Stopper.h"
 #include "libs/seahorse/include/Optimisation/dCRAB.h"

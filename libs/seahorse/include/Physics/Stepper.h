@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "libs/seahorse/include/Utils/Globals.h"
 #include "libs/seahorse/include/Physics/Hamiltonian.h"
+#include "libs/seahorse/include/Utils/Globals.h"
 
 #include <libs/eigen/Eigen/Core>
 #include <libs/eigen/unsupported/Eigen/FFT>
@@ -12,7 +12,10 @@
 
 // General class to evolve wavefunctions: either by a single `step(u)` or multiple `evolve(control)`.
 class Stepper {
-protected:
+
+  protected:
+    // Implementing the clone pattern within derived classes
+    virtual Stepper* clone_impl() const = 0;
     double m_dt = 0;
     double m_dx = 0;
     CVec m_psi_0; // initial state
@@ -24,6 +27,8 @@ public:
     Stepper(double dt, double dx, const CVec& psi_0);
 
     virtual ~Stepper() {};
+  // implementing the clone pattern
+    std::unique_ptr<Stepper> clone() const;
 
     // Revert any internal state to orignal state or to new psi_0
     virtual void reset() = 0;

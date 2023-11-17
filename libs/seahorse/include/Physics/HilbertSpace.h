@@ -2,8 +2,6 @@
 
 #include "libs/seahorse/src/Physics/Vectors.cpp"
 
-void test(int i);
-
 class HilbertSpace {
 private:
     // Spatial grid

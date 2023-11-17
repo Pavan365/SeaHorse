@@ -1,6 +1,8 @@
 #pragma once
 
 #include "libs/seahorse/include/Utils/Globals.h"
+#include "libs/seahorse/include/Utils/Random.h"
+#include "libs/seahorse/src/Physics/Vectors.cpp"
 
 class Basis {
 private:
