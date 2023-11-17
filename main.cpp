@@ -39,7 +39,7 @@ int main()
 
     Basis basis = Basis::TRIG(t, 8.5, 10);
 
-    Stopper stopper = StallStopper(2) + (FidStopper(0.99) + IterStopper(100)) + StallStopper(20);
+    Stopper stopper = FidStopper(0.99) + IterStopper(100) + StallStopper(20);
 
     SaveFn saver = [](const Optimiser& opt) {
         S_INFO(opt.num_iterations, "\tfid= ", opt.bestControl.fid);

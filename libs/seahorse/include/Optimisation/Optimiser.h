@@ -9,13 +9,16 @@ class Optimiser;
 typedef std::function<void(const Optimiser&)> SaveFn;
 
 class Optimiser {
-public:
+private:
     // Stopper
     Stopper stopper;
     // Cost
     Cost cost;
     // Saver
     SaveFn saver;
+
+public:
+    friend class dCRAB;
 
     EvaluatedControl bestControl;
     // Num iterations
@@ -25,7 +28,6 @@ public:
     // Full path propagations
     int fpp = 0;
 
-public:
     // Constructor
     Optimiser(Stopper stopper, Cost cost, SaveFn saver);
 
@@ -38,5 +40,6 @@ public:
     virtual void optimise() = 0;
     virtual void step() = 0;
 
+private:
     virtual void updateBest(EvaluatedControl&) = 0;
 };

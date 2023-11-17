@@ -28,10 +28,12 @@ private:
     // Holds the simplex of control coefficients
     std::vector<SimplexPoint> simplex;
 
-public:
     // Holds the basis states as columns
     std::unique_ptr<Basis> basis;
 
+    void updateBest(EvaluatedControl&) override;
+
+public:
     dCRAB(Basis& basis, Stopper& stopper, Cost& cost, SaveFn saver);
     // No Saver
     dCRAB(Basis& basis, Stopper& stopper, Cost& cost);
@@ -39,8 +41,6 @@ public:
     // Run optimisation - Basis size inferred from basis
     void optimise() override;
     void optimise(int dressings = 1);
-
-    void updateBest(EvaluatedControl&) override;
 
     void init() override;
     void step() override;
