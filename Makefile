@@ -9,6 +9,7 @@ FRAMEWORKS ?= -framework CoreVideo -framework IOKit -framework Cocoa -framework 
 
 # Using libs...
 IPATH += -I./
+IPATH += -I/usr/local/include
 IPATH += -I./libs/eigen
 IPATH += -I./libs/raylib/src
 

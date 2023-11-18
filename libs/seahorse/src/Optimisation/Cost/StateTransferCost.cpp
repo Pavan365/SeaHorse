@@ -3,7 +3,7 @@
 double StateTransfer::operator()(const RVec& u)
 {
     double temp = 0;
-    for (int i = 0; i < psi_0.size(); i++) {
+    for (auto i = 0; i < psi_0.size(); i++) {
         stepper->reset(psi_0[i]);
         stepper->evolve(u);
         temp += fidelity(psi_t[i], stepper->state());

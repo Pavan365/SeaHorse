@@ -44,14 +44,16 @@ public:
         this->stepper = std::make_unique<T>(stepper);
         this->psi_0 = psi_0s;
         this->psi_t = psi_ts;
-        for (int i = 0; i < psi_0.size(); i++) {
+        for (auto i = 0; i < psi_0.size(); i++) {
             this->psi_0[i].normalize();
             this->psi_t[i].normalize();
         }
-    };
+    }
 
     // Templated constructor to allow for any type of stepper with single state transfer
     template <Steppable T>
     StateTransfer(T stepper, CVec psi_0, CVec psi_t)
-        : StateTransfer(stepper, std::vector { psi_0 }, std::vector { psi_t }) {};
+        : StateTransfer(stepper, std::vector { psi_0 }, std::vector { psi_t })
+    {
+    }
 };

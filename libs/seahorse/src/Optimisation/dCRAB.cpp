@@ -1,5 +1,4 @@
 #include "libs/seahorse/include/Optimisation/dCRAB.h"
-#include "libs/seahorse/include/Optimisation/Cost/Cost.h"
 #include "libs/seahorse/include/Utils/Globals.h"
 
 dCRAB::dCRAB(Basis& basis, Stopper& stopper, Cost& cost,
@@ -22,6 +21,7 @@ void dCRAB::init()
     steps_since_improvement = 0;
 
     // Initial point - random coeffs between -1 and 1
+    // FIXME: Bases should probably provide their own control guesses - maybe a whole simplex of them?
     RVec initialControl = RVec::Random(basis->size());
     bestControl = cost(basis->control(initialControl));
 
@@ -121,7 +121,7 @@ void dCRAB::step()
 
     // SHRINK
     // shrink all points towards best point
-    for (int i = 1; i < simplex.size(); i++) {
+    for (auto i = 1; i < simplex.size(); i++) {
         RVec new_pt = simplex.front().coeffs + sigma * (simplex[i].coeffs - simplex.front().coeffs);
         auto eval = cost(basis->control(new_pt));
         simplex[i] = { new_pt, eval.cost };

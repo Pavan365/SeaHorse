@@ -1,6 +1,4 @@
 // #include "libs/seahorse/src/seahorse.cpp" // use for full integration [slow build, but might fix weird errors]
-#include "libs/seahorse/include/Optimisation/Stopper/StopComponent.h"
-#include "libs/seahorse/include/Optimisation/Stopper/Stopper.h"
 #include "libs/seahorse/include/seahorse.h"
 
 // We include the file as `unsigned char sourceFile[]`
