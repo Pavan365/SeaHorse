@@ -36,8 +36,8 @@
 *.DS_Store
 
 # Executables or analysis
-/output/*
-/bin/*
+/output
+/bin
 
-# Ignore all rawtext as they are generated on the fly for includes
-*.rawtext
+# Ignore all .asString as they are generated on the fly for includes
+*.asString

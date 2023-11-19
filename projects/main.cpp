@@ -1,7 +1,7 @@
 #include "seahorse.h"
 
 // We include the file as `unsigned char sourceFile[]`
-#include "main.rawtext"
+#include "main.asString"
 
 int main()
 {
