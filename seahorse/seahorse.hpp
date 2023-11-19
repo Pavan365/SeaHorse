@@ -1,5 +1,8 @@
 #pragma once
 
+// only link library if we aren't debugging
+#ifdef NDEBUG
+
 // standard libs
 #include <complex>
 #include <format>
@@ -20,3 +23,8 @@
 #include "include/Physics/Stepper.hpp"
 #include "include/Utils/Globals.hpp"
 #include "include/Utils/Random.hpp"
+
+#else
+
+#include "lib/seahorse.cpp"
+#endif
