@@ -1,7 +1,7 @@
 #pragma once
 
-#include "include/Optimisation/Stopper/StopComponent.h"
-#include "include/Utils/Globals.h"
+#include "include/Optimisation/Stopper/StopComponent.hpp"
+#include "include/Utils/Globals.hpp"
 
 class Optimiser;
 

@@ -1,4 +1,4 @@
-#include "include/Optimisation/Optimiser.h"
+#include "include/Optimisation/Optimiser.hpp"
 
 // Constructor
 Optimiser::Optimiser(Stopper stopper, Cost cost, SaveFn saver)

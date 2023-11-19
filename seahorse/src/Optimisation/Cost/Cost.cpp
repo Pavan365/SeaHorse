@@ -1,4 +1,4 @@
-#include "include/Optimisation/Cost/Cost.h"
+#include "include/Optimisation/Cost/Cost.hpp"
 #include "src/Optimisation/Cost/ControlCost.cpp"
 #include "src/Optimisation/Cost/StateTransferCost.cpp"
 

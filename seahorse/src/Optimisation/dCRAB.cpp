@@ -1,5 +1,5 @@
-#include "include/Optimisation/dCRAB.h"
-#include "include/Utils/Globals.h"
+#include "include/Optimisation/dCRAB.hpp"
+#include "include/Utils/Globals.hpp"
 
 dCRAB::dCRAB(Basis& basis, Stopper& stopper, Cost& cost,
     SaveFn saver)

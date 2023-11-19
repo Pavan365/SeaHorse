@@ -1,7 +1,7 @@
 #pragma once
 
-#include "include/Utils/Globals.h"
-#include "include/Utils/Random.h"
+#include "include/Utils/Globals.hpp"
+#include "include/Utils/Random.hpp"
 #include "src/Physics/Vectors.cpp"
 
 class Basis {

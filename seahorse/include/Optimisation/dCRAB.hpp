@@ -1,7 +1,7 @@
 #pragma once
 
-#include "include/Optimisation/Optimiser.h"
-#include "include/Optimisation/Basis/Basis.h"
+#include "include/Optimisation/Basis/Basis.hpp"
+#include "include/Optimisation/Optimiser.hpp"
 
 // Implementation of a dressed CRAB optimiser
 class dCRAB : public Optimiser {

@@ -1,4 +1,4 @@
-#include "include/Physics/HilbertSpace.h"
+#include "include/Physics/HilbertSpace.hpp"
 
 // Constructors
 HilbertSpace::HilbertSpace(int dim, double xmin, double xmax)

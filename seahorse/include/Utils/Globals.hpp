@@ -85,7 +85,7 @@ public:
 //     unsigned char *fileData = LoadFileData(fontFile.c_str(), &dataSize);
 //     // Redirect stdout to the new file
 //     FILE *saved = stdout;
-//     stdout = fopen((fontFile + ".h").c_str(), "a");
+//     stdout = fopen((fontFile + ".hpp").c_str(), "a");
 
 //     // Write data to file
 //     printf("unsigned char text_txt_data[] = {");

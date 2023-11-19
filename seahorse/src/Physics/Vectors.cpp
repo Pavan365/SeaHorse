@@ -4,7 +4,7 @@
 */
 
 #pragma once
-#include "include/Utils/Globals.h"
+#include "include/Utils/Globals.hpp"
 
 // Allow maths style notation on real/complex Vecs + Scalars
 // We promote the type to complex only where needed

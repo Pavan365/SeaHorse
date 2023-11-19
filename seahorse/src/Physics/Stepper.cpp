@@ -1,4 +1,4 @@
-#include "include/Physics/Stepper.h"
+#include "include/Physics/Stepper.hpp"
 
 // Constructor
 Stepper::Stepper() { }

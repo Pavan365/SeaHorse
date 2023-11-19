@@ -1,6 +1,6 @@
 #pragma once
 
-#include "include/Utils/Globals.h"
+#include "include/Utils/Globals.hpp"
 
 class Optimiser;
 

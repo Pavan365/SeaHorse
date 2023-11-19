@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "include/Physics/Hamiltonian.h"
-#include "include/Utils/Globals.h"
+#include "include/Physics/Hamiltonian.hpp"
+#include "include/Utils/Globals.hpp"
 
 #include <libs/eigen/Eigen/Core>
 #include <libs/eigen/unsupported/Eigen/FFT>

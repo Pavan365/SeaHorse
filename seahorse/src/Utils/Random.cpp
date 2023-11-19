@@ -1,4 +1,4 @@
-#include <include/Utils/Random.h>
+#include "include/Utils/Random.hpp"
 
 uint64_t get_rand_seed()
 {

@@ -1,4 +1,4 @@
-#include "seahorse.h"
+#include "seahorse.hpp"
 
 // We include the file as `unsigned char sourceFile[]`
 #include "gkp_states.asString"

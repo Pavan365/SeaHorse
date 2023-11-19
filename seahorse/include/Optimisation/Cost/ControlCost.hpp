@@ -1,6 +1,6 @@
 #pragma once
 
-#include "include/Utils/Globals.h"
+#include "include/Utils/Globals.hpp"
 
 // Represents a cost component that is only a function of the control
 class ControlCost {

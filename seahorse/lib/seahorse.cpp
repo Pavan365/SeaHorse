@@ -4,7 +4,7 @@
 #include <iostream>
 
 // Seahorse Components - actual implementations
-#include "include/Utils/Globals.h"
+#include "include/Utils/Globals.hpp"
 #include "src/Optimisation/Basis/Basis.cpp"
 #include "src/Optimisation/Cost/Cost.cpp"
 #include "src/Optimisation/Optimiser.cpp"

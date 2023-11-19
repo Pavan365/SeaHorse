@@ -1,4 +1,4 @@
-#include "include/Physics/Hamiltonian.h"
+#include "include/Physics/Hamiltonian.hpp"
 
 // Actual construction from result
 Spectrum::Spectrum(const RVec& eigs, const Eigen::MatrixXd& eigvs)

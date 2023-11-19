@@ -1,4 +1,4 @@
-#include "include/Physics/SplitStepper.h"
+#include "include/Physics/SplitStepper.hpp"
 
 // Constructor
 SplitStepper::SplitStepper() { }

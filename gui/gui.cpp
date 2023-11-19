@@ -1,8 +1,8 @@
 #include "gui/GuiComponents.cpp"
-#include "seahorse.h"
+#include "seahorse.hpp"
 
-#include "libs/raygui/src/raygui.h"
-#include "libs/raylib/src/raylib.h"
+#include "libs/raygui/src/raygui.hpp"
+#include "libs/raylib/src/raylib.hpp"
 
 float fontSize = 15;
 float padding = 8;

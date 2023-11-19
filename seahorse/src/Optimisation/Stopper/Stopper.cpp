@@ -1,5 +1,5 @@
-#include "include/Optimisation/Stopper/Stopper.h"
-#include "include/Optimisation/Optimiser.h"
+#include "include/Optimisation/Stopper/Stopper.hpp"
+#include "include/Optimisation/Optimiser.hpp"
 #include "src/Optimisation/Stopper/StopComponent.cpp"
 
 Stopper::Stopper(StopComponent sc) { components.push_back(sc); };

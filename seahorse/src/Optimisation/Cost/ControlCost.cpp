@@ -1,5 +1,5 @@
-#include "include/Optimisation/Cost/ControlCost.h"
-#include "include/Utils/Globals.h"
+#include "include/Optimisation/Cost/ControlCost.hpp"
+#include "include/Utils/Globals.hpp"
 
 ControlCost makeRegularisation()
 {

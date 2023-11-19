@@ -1,8 +1,8 @@
 #pragma once
 
-#include "include/Optimisation/Cost/EvaluatedControl.h"
-#include "include/Physics/Stepper.h"
-#include "include/Utils/Globals.h"
+#include "include/Optimisation/Cost/EvaluatedControl.hpp"
+#include "include/Physics/Stepper.hpp"
+#include "include/Utils/Globals.hpp"
 
 template <typename T>
 concept Steppable = std::is_base_of<Stepper, T>::value;

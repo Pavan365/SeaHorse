@@ -1,13 +1,13 @@
 #pragma once
 
-#include "seahorse.h"
-#include "libs/raygui/src/raygui.h"
+#include "libs/raygui/src/raygui.hpp"
+#include "seahorse.hpp"
 #include <iomanip>
 #include <thread>
 #include <unistd.h>
 
 // Data
-#include "gui/resources/UbuntuMonoBold.h"
+#include "gui/resources/UbuntuMonoBold.hpp"
 
 #define VEC_FROM_RVEC(v) std::vector<double>(v.data(), v.data() + v.size())
 #define VEC_VEC_FROM_EIGEN(m)                                         \

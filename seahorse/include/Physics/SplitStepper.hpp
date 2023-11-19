@@ -1,6 +1,6 @@
 #pragma once
 
-#include "include/Physics/Stepper.h"
+#include "include/Physics/Stepper.hpp"
 #include <iostream>
 
 class SplitStepper : public Stepper {

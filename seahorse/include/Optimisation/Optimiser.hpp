@@ -1,9 +1,9 @@
 #pragma once
 
-#include "include/Utils/Globals.h"
-#include "include/Optimisation/Cost/Cost.h"
-#include "include/Optimisation/Stopper/Stopper.h"
-#include "include/Physics/SplitStepper.h"
+#include "include/Optimisation/Cost/Cost.hpp"
+#include "include/Optimisation/Stopper/Stopper.hpp"
+#include "include/Physics/SplitStepper.hpp"
+#include "include/Utils/Globals.hpp"
 
 class Optimiser;
 typedef std::function<void(const Optimiser&)> SaveFn;

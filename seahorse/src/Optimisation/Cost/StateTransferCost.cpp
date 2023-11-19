@@ -1,4 +1,4 @@
-#include "include/Optimisation/Cost/StateTransferCost.h"
+#include "include/Optimisation/Cost/StateTransferCost.hpp"
 
 double StateTransfer::operator()(const RVec& u)
 {
