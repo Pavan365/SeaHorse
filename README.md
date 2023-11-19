@@ -21,9 +21,9 @@ Quantum Simulation and Optimal Control.
 ## Installing
 On first run you need to initialise and update the submodules:
 
-`git init submodules`
+`git submodule init`
 
-`git update submodules`
+`git submodule update`
 
 ## Building
 We use the make build system. This is setup to separate the build of user programs and the seahorse library, which massively decreases compile times.
