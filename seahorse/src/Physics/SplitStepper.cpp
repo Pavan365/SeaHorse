@@ -1,10 +1,11 @@
 #include "include/Physics/SplitStepper.hpp"
+#include "include/Physics/Vectors.hpp"
 
 // Constructor
 SplitStepper::SplitStepper() { }
 
-SplitStepper::SplitStepper(double dt, HamiltonianFn& H, const CVec& psi_0, bool use_imag_pot)
-    : Stepper(dt, H.hs.dx(), psi_0.normalized())
+SplitStepper::SplitStepper(double dt, HamiltonianFn& H, bool use_imag_pot)
+    : Stepper(dt, H.hs.dx())
     , m_V(H.V)
 {
     m_fft.fwd(m_mombuf, m_psi_f);
@@ -21,16 +22,9 @@ SplitStepper::SplitStepper(double dt, HamiltonianFn& H, const CVec& psi_0, bool 
     }
 }
 
-// Discard any internal state changed to date
-void SplitStepper::reset()
-{
-    m_psi_f = m_psi_0;
-}
-
 void SplitStepper::reset(const CVec& psi_0)
 {
-    m_psi_0 = psi_0 / psi_0.norm();
-    SplitStepper::reset();
+    m_psi_f = psi_0.normalized();
 }
 
 void SplitStepper::step(double u) // Move forward a single step
@@ -48,8 +42,10 @@ void SplitStepper::step(double u) // Move forward a single step
 
 // Optimised steps but can't provide intermediate step wavefunctions
 // This combines T/2 ifft fft T/2 between steps to save computation.
-void SplitStepper::evolve(const RVec& control)
+void SplitStepper::evolve(const CVec& psi_0, const RVec& control)
 {
+    reset(psi_0);
+
     // Timer timer;
     // Initial half step T/2
     m_fft.fwd(m_mombuf, m_psi_f);

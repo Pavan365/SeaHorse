@@ -1,17 +1,13 @@
 #include "include/Optimisation/Cost/StateTransferCost.hpp"
+#include "include/Physics/Vectors.hpp"
 
 double StateTransfer::operator()(const RVec& u)
 {
-    double temp = 0;
-    for (auto i = 0; i < psi_0.size(); i++) {
-        stepper->reset(psi_0[i]);
-        stepper->evolve(u);
-        temp += fidelity(psi_t[i], stepper->state());
-    }
+    stepper->evolve(psi_0,u);
+    double fid = fidelity(psi_t, stepper->state());
 
-    // We want to maximise the fidelity, so the cost is the negative of the
-    // fidelities. Fid is the mean fidelity of transfers
-    eval = { .control = u, .cost = -temp, .fid = temp / psi_0.size() };
+    // We want to maximise the fidelity, so the cost is the negative
+    eval = { .control = u, .cost = -fid, .fid = fid };
 
     return eval.fid;
 };

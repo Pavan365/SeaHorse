@@ -7,7 +7,7 @@
 template <typename T>
 concept Steppable = std::is_base_of<Stepper, T>::value;
 
-// Represents a fidelity cost function which can map multiple initial states to their desired final states
+// Represents a fidelity cost function from an initial state to the desired final state
 class StateTransfer {
 public:
     friend class Cost;
@@ -16,8 +16,8 @@ private:
     EvaluatedControl eval;
 
     std::unique_ptr<Stepper> stepper;
-    std::vector<CVec> psi_0;
-    std::vector<CVec> psi_t;
+    CVec psi_0;
+    CVec psi_t;
 
 public:
     // NB: This is not a true fidelity as we just average the fidelities of each
@@ -38,22 +38,12 @@ public:
     ~StateTransfer() = default;
     // Templated constructor to allow for any type of stepper
     template <Steppable T>
-    StateTransfer(T stepper, std::vector<CVec> psi_0s,
-        std::vector<CVec> psi_ts)
+    StateTransfer(T stepper, CVec psi_0, CVec psi_t)
     {
         this->stepper = std::make_unique<T>(stepper);
-        this->psi_0 = psi_0s;
-        this->psi_t = psi_ts;
-        for (auto i = 0; i < psi_0.size(); i++) {
-            this->psi_0[i].normalize();
-            this->psi_t[i].normalize();
-        }
+        this->psi_0 = psi_0.normalized();
+        this->psi_t = psi_t.normalized();
     }
 
-    // Templated constructor to allow for any type of stepper with single state transfer
-    template <Steppable T>
-    StateTransfer(T stepper, CVec psi_0, CVec psi_t)
-        : StateTransfer(stepper, std::vector { psi_0 }, std::vector { psi_t })
-    {
-    }
+
 };

@@ -16,7 +16,7 @@ StopComponent FidStopper(double fid)
 StopComponent IterStopper(int iter)
 {
     std::function<bool(const Optimiser&)> criteria = [=](const Optimiser& opt) {
-        return opt.num_iterations > iter;
+        return opt.num_iterations >= iter;
     };
     std::string text = "Max Iterations Reached (" + std::to_string(iter) + ")";
     return StopComponent(text, std::move(criteria));

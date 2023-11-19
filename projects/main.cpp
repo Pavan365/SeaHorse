@@ -28,11 +28,9 @@ int main()
     HamiltonianFn H(hs, V0);
     Hamiltonian H0 = H(0);
 
-    CVec psi_0 = H0[0] + H0[1];
+    SplitStepper stepper = SplitStepper(dt, H);
 
-    SplitStepper stepper = SplitStepper(dt, H, psi_0);
-
-    Cost cost = StateTransfer(stepper, psi_0, H0[0]) + 1e-10 * makeBoundaries(-1, 1) + 1e-10 * makeRegularisation();
+    Cost cost = StateTransfer(stepper, H0[0], H0[1]) + StateTransfer(stepper, H0[1],H0[0]) + 1e3 * makeBoundaries(-1, 1) + 1e-6 * makeRegularisation();
 
     Basis basis = Basis::TRIG(t, 8.5, 10);
 
@@ -44,6 +42,7 @@ int main()
 
     dCRAB optimiser = dCRAB(basis, stopper, cost, saver);
     optimiser.optimise(5);
+
 
     timer.Stop("(Main)");
     return 0;

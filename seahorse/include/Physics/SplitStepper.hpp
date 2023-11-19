@@ -23,16 +23,15 @@ protected:
 
 public:
     // Constructor
-    SplitStepper(double dt, HamiltonianFn& H, const CVec& psi_0, bool use_imag_pot = true);
+    SplitStepper(double dt, HamiltonianFn& H, bool use_imag_pot = true);
     SplitStepper();
 
     // Discard any internal state changed to date
-    void reset() override;
     void reset(const CVec& psi_0) override;
 
     // Evolution of state
     void step(double u) override;
     // Optimised steps but can't provide intermediate step wavefunctions
     // This combines T/2 ifft fft T/2 between steps to save computation.
-    void evolve(const RVec& control) override;
+    void evolve(const CVec& psi_0, const RVec& control) override;
 };
