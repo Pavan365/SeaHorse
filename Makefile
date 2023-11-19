@@ -6,7 +6,7 @@ all : $(project_files)
 $(project_files) : % : projects/%.cpp seahorse/lib/libseahorse.a
 	@mkdir -p bin
 	@echo ${GREEN}[BUILDING]${NC} Release version of $@...
-	$(call generate_source,$@.cpp)
+	@$(call generate_source,$@.cpp)
 	@ $(CXX) $< $(STD) $(W_FLAGS) $(OPTIMISE_FLAGS) $(INCLUDE_PATHS) $(USE_FFTW) $(LIBSEAHORSE) -o ./bin/$(notdir $@)
 	@ $(call clean_up_source)
 
