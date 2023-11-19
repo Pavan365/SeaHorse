@@ -1,6 +1,7 @@
 #pragma once
 
 #include "include/Utils/Globals.hpp"
+#include "include/Utils/Random.hpp"
 
 class Basis {
 private:
