@@ -2,8 +2,6 @@
 
 #include "include/Optimisation/Cost/Cost.hpp"
 #include "include/Optimisation/Stopper/Stopper.hpp"
-#include "include/Physics/SplitStepper.hpp"
-#include "include/Utils/Globals.hpp"
 
 class Optimiser;
 typedef std::function<void(const Optimiser&)> SaveFn;

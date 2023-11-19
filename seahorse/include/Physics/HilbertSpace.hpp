@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/Physics/Vectors.cpp"
+#include "include/Utils/Globals.hpp"
 
 class HilbertSpace {
 private:

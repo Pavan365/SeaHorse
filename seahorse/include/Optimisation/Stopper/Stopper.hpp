@@ -1,7 +1,6 @@
 #pragma once
 
 #include "include/Optimisation/Stopper/StopComponent.hpp"
-#include "include/Utils/Globals.hpp"
 
 class Optimiser;
 

@@ -2,7 +2,6 @@
 
 #include <iostream>
 
-#include "include/Physics/Hamiltonian.hpp"
 #include "include/Utils/Globals.hpp"
 
 #include <libs/eigen/Eigen/Core>

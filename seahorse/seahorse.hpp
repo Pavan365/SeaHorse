@@ -6,7 +6,7 @@
 #include <iostream>
 
 // Be careful - both declaration and definition to allow templated Eigen returns
-#include "src/Physics/Vectors.cpp"
+#include "include/Physics/Vectors.hpp"
 
 // Seahorse - just headers
 #include "include/Optimisation/Basis/Basis.hpp"

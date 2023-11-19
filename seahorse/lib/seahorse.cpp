@@ -4,6 +4,7 @@
 #include <iostream>
 
 // Seahorse Components - actual implementations
+#include "include/Physics/Vectors.hpp"
 #include "include/Utils/Globals.hpp"
 #include "src/Optimisation/Basis/Basis.cpp"
 #include "src/Optimisation/Cost/Cost.cpp"
@@ -14,5 +15,4 @@
 #include "src/Physics/HilbertSpace.cpp"
 #include "src/Physics/SplitStepper.cpp"
 #include "src/Physics/Stepper.cpp"
-#include "src/Physics/Vectors.cpp"
 #include "src/Utils/Random.cpp"
