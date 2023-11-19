@@ -28,5 +28,12 @@ On first run you need to initialise and update the submodules:
 ## Building
 We use the make build system. This is setup to separate the build of user programs and the seahorse library, which massively decreases compile times.
 
-To build the code run
-`make release`
+Any *.cpp in the projects file can be built using:
+
+`make *` 
+
+or for debugging 
+
+`make *.debug`
+
+Which will create an executable in /bin.
