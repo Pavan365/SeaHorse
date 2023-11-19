@@ -1,5 +1,5 @@
 #include "gui/GuiComponents.cpp"
-#include "include/seahorse.h"
+#include "seahorse.h"
 
 #include "libs/raygui/src/raygui.h"
 #include "libs/raylib/src/raylib.h"

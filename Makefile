@@ -1,97 +1,54 @@
-STDS ?= -std=c++20
-WFLAGS ?= -Wall -Wpedantic -Wno-deprecated-declarations -Wno-format-security -Wno-deprecated-enum-compare-conditional -Wno-deprecated-anon-enum-enum-conversion
-DEFS ?= 
-LIBS ?= 
-IPATH ?=
-LPATH ?= -L./seahorse
-FRAMEWORKS ?= -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
+include ./Makefile.config
 
-# Using libs...
-IPATH += -I./
-IPATH += -I./seahorse
-IPATH += -I/usr/local/include
-IPATH += -I./libs/eigen
-IPATH += -I./libs/raylib/src
+###### ALL PROJECTS ######
+project_files = $(notdir $(basename $(wildcard projects/*.cpp)))
+all : $(project_files)
+$(project_files) : % : projects/%.cpp ./seahorse/lib/libseahorse.a
+	@echo ${GREEN}[BUILDING]${NC} Release version of $@...
+	@ $(call generate_source,projects/$@)
+	@ $(CXX) $< $(STD) $(W_FLAGS) $(OPTIMISE_FLAGS) $(INCLUDE_PATHS) $(USE_FFTW) $(LIBSEAHORSE) -o ./bin/$(notdir $@)
+	@ $(call clean_up_source)
 
-# If using fftw3... This speeds up splitstep by a factor ~2
-# We may or may not want this based on dimensions
-DEFS += -DEIGEN_FFTW_DEFAULT
-LIBS += -lfftw3 -lfftw3f -lfftw3l
-LPATH += -L/usr/local/lib
+debug_files = $(patsubst %, %.debug, $(project_files))
+debug: $(debug_files)
+$(debug_files) : %.debug : projects/%.cpp ./seahorse/lib/libseahorsed.a
+	@echo ${GREEN}[BUILDING]${NC} Debug version of $(basename $@)...
+	@ $(call generate_source,projects/$(basename $@))
+	@ $(CXX) $< $(STD) $(W_FLAGS) $(DEBUG_FLAGS) $(INCLUDE_PATHS) $(USE_FFTW) $(LIBSEAHORSED) -o ./bin/$(notdir $(basename $@))_debug
+	@ $(call clean_up_source)
 
-# Release optimisation flags
-OPTS := -Ofast
-OPTS += -mavx2 -mfma -march=native 
-OPTS += -ffp-contract=fast -fno-math-errno 
-OPTS += -ffast-math -funsafe-math-optimizations # potentially wrong results - check?
-DEFS += -DNDEBUG
-
-# Compilers
-CC = gcc
-CXX = g++
-
-GREEN='\033[92m'
-RED='\033[91m'
-NC='\033[0m'
-
-# Defaults to main.cpp in release mode
-all: clean release
-
+####### GUI VERSION #######
 # Graphical Interface - (this is also inserted into the seahorse.app)
-gui: gui.cpp Makefile ./seahorse/libseahorse.a libs/raylib/src/libraylib.a
+gui: bin/gui
+bin/gui: gui/gui.cpp Makefile ./seahorse/lib/libseahorse.a libs/raylib/src/libraylib.a
 	@echo ${GREEN}[BUILDING]${NC} Graphical Version...
-	@ $(call generate_source,main.cpp)
-	@ $(CXX) $(FRAMEWORKS) $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) $(LPATH) -L./libs/raylib/src $(LIBS) -lseahorse -lraylib $@.cpp -o ./bin/$@
-	@ $(call remove_source_files)
+	@ $(CXX) $(FRAMEWORKS) $(STD) $(W_FLAGS) $(OPTIMISE_FLAGS) $(INCLUDE_PATHS) $(LIBRAYLIB) $(LIBSEAHORSED) gui/gui.cpp -o ./bin/gui
 	@echo ${GREEN}[RUNNING]${NC}
-	$(RUN) ./bin/$@ $(ARGS)
+	$(RUN) ./bin/gui $(ARGS)
 
-# Main.cpp file
-release: main.cpp Makefile ./seahorse/libseahorse.a
-	@echo ${GREEN}[BUILDING]${NC} Release Version...
-	@ $(call generate_source,main.cpp)
-	@ $(CXX) main.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) $(LPATH) $(LIBS) -lseahorse -o ./bin/$@
-	@ $(call remove_source_files)
-	@echo ${GREEN}[RUNNING]${NC}
-	$(RUN) ./bin/$@ $(ARGS)
-
-# NB This must have EXACTLY the same architecture/optimisation flags set as the main build
-seahorse/libseahorse.a : $(shell find ./seahorse -type f ! -name libseahorse.a ! -name libdebugseahorse.a) Makefile libs/eigen libs/spectra
-	@echo ${GREEN}[BUILDING]${NC} Lib Seahorse...
-	@ $(CXX) seahorse/seahorse.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -c -o seahorse/libseahorse.o
-	@ $(RUN) ar rvs seahorse/libseahorse.a seahorse/libseahorse.o
-	@ $(RUN) rm seahorse/libseahorse.o
-
-# Main.cpp file in debug mode
-debug: main.cpp Makefile ./seahorse/libdebugseahorse.a
-	@echo ${GREEN}[BUILDING]${NC} Debug Version...
-	@ $(call generate_source,main.cpp)
-	@ $(CXX) main.cpp $(STDS) $(DEFS) -UNDEBUG -O0 $(WFLAGS) $(IPATH) $(LPATH) $(LIBS) -ldebugseahorse -g -o ./bin/$@
-	@ $(call remove_source_files)
-	@echo ${GREEN}[RUNNING]${NC}
-	$(RUN) lldb ./bin/$@ $(ARGS)
-
-# The debugging version of the library
-seahorse/libdebugseahorse.a : $(shell find ./seahorse -type f ! -name libseahorse.a ! -name libdebugseahorse.a) Makefile libs/eigen libs/spectra
-	@echo ${GREEN}[BUILDING]${NC} Lib Debug Seahorse...
-	@ $(CXX) seahorse/seahorse.cpp $(STDS) $(DEFS) -UNDEBUG -O0 $(WFLAGS) $(IPATH) -c -g -o seahorse/libdebugseahorse.o
-	@ $(RUN) ar rvs seahorse/libdebugseahorse.a seahorse/libdebugseahorse.o
-	@ $(RUN) rm seahorse/libdebugseahorse.o
-
-
+####### LIBRARIES #######
 # We have this checked out at a specific time so don't need to check for changes
-libs/raylib/src/libraylib.a : libs/raylib/src/raylib.h libs/raygui/src/raygui.h
+libs/raylib/src/libraylib.a :
 	@echo ${GREEN}[BUILDING]${NC} Lib Raylib...
 	@ (cd libs/raylib/src && make PLATFORM=PLATFORM_DESKTOP RAYLIB_MODULE_RAYGUI=TRUE)
 
-# Clean up any executables
+# NB This must have EXACTLY the same architecture/optimisation flags set as the main build
+seahorse/lib/libseahorse.a : $(shell find ./seahorse/lib -type f ! -name '*.a')
+	@echo ${GREEN}[BUILDING]${NC} Lib Seahorse...
+	@ $(CXX) seahorse/lib/seahorse.cpp $(STD) $(W_FLAGS) $(OPTIMISE_FLAGS) $(INCLUDE_PATHS) -c -o seahorse/lib/libseahorse.o
+	@ $(RUN) ar rvs seahorse/lib/libseahorse.a seahorse/lib/libseahorse.o
+	@ $(RUN) rm seahorse/lib/libseahorse.o
+
+# The debugging version of the library
+seahorse/lib/libseahorsed.a : $(shell find ./seahorse/lib -type f ! -name '*.a')
+	@echo ${GREEN}[BUILDING]${NC} Debug Lib Seahorse...
+	@ $(CXX) seahorse/lib/seahorse.cpp $(STD) $(W_FLAGS) $(DEBUG_FLAGS) $(INCLUDE_PATHS) -c -o seahorse/lib/libseahorsed.o
+	@ $(RUN) ar rvs seahorse/lib/libseahorsed.a seahorse/lib/libseahorsed.o
+	@ $(RUN) rm seahorse/lib/libseahorsed.o
+
+####### CLEAN UP #######
+.PHONY: clean
 clean:
 	@echo ${GREEN}[CLEANING]${NC} ...
-	@- rm -rf ./bin/*
-	@- rm seahorse/libseahorse.a
-	@- find libs/raylib/src/*.o | xargs rm
-
-define generate_source
-	@echo ${GREEN}[GENERATING SOURCE STRING]${NC} $(1)...
-	@ $(RUN) xxd -i -u -n sourceFile $(1) > $(1).rawtext
-endef
+	@- find ./bin -type f -name '*' | xargs rm
+	@- find . -type f -name '*.[oa]' | xargs rm

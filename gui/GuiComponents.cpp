@@ -1,6 +1,6 @@
 #pragma once
 
-#include "include/seahorse.h"
+#include "seahorse.h"
 #include "libs/raygui/src/raygui.h"
 #include <iomanip>
 #include <thread>

@@ -1,8 +1,7 @@
-// #include "src/seahorse.cpp" // use for full integration [slow build, but might fix weird errors]
-#include "include/seahorse.h"
+#include "seahorse.h"
 
 // We include the file as `unsigned char sourceFile[]`
-#include "main.cpp.rawtext"
+#include "gkp_states.rawtext"
 
 int main()
 {
