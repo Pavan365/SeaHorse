@@ -1,5 +1,5 @@
 // #include "src/seahorse.cpp" // use for full integration [slow build, but might fix weird errors]
-#include "seahorse.h"
+#include "include/seahorse.h"
 
 // We include the file as `unsigned char sourceFile[]`
 #include "main.cpp.rawtext"

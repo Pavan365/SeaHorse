@@ -3,12 +3,12 @@ WFLAGS ?= -Wall -Wpedantic -Wno-deprecated-declarations -Wno-format-security -Wn
 DEFS ?= 
 LIBS ?= 
 IPATH ?=
-LPATH ?= -L./libs/seahorse
+LPATH ?= -L./seahorse
 FRAMEWORKS ?= -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
-
 
 # Using libs...
 IPATH += -I./
+IPATH += -I./seahorse
 IPATH += -I/usr/local/include
 IPATH += -I./libs/eigen
 IPATH += -I./libs/raylib/src
@@ -38,7 +38,7 @@ NC='\033[0m'
 all: clean release
 
 # Graphical Interface - (this is also inserted into the seahorse.app)
-gui: gui.cpp Makefile ./libs/seahorse/libseahorse.a libs/raylib/src/libraylib.a
+gui: gui.cpp Makefile ./seahorse/libseahorse.a libs/raylib/src/libraylib.a
 	@echo ${GREEN}[BUILDING]${NC} Graphical Version...
 	@ $(call generate_source,main.cpp)
 	@ $(CXX) $(FRAMEWORKS) $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) $(LPATH) -L./libs/raylib/src $(LIBS) -lseahorse -lraylib $@.cpp -o ./bin/$@
@@ -47,7 +47,7 @@ gui: gui.cpp Makefile ./libs/seahorse/libseahorse.a libs/raylib/src/libraylib.a
 	$(RUN) ./bin/$@ $(ARGS)
 
 # Main.cpp file
-release: main.cpp Makefile ./libs/seahorse/libseahorse.a
+release: main.cpp Makefile ./seahorse/libseahorse.a
 	@echo ${GREEN}[BUILDING]${NC} Release Version...
 	@ $(call generate_source,main.cpp)
 	@ $(CXX) main.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) $(LPATH) $(LIBS) -lseahorse -o ./bin/$@
@@ -56,14 +56,14 @@ release: main.cpp Makefile ./libs/seahorse/libseahorse.a
 	$(RUN) ./bin/$@ $(ARGS)
 
 # NB This must have EXACTLY the same architecture/optimisation flags set as the main build
-libs/seahorse/libseahorse.a : $(shell find ./libs/seahorse -type f ! -name libseahorse.a ! -name libdebugseahorse.a) Makefile libs/eigen libs/spectra
+seahorse/libseahorse.a : $(shell find ./seahorse -type f ! -name libseahorse.a ! -name libdebugseahorse.a) Makefile libs/eigen libs/spectra
 	@echo ${GREEN}[BUILDING]${NC} Lib Seahorse...
-	@ $(CXX) libs/seahorse/src/seahorse.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -c -o libs/seahorse/libseahorse.o
-	@ $(RUN) ar rvs libs/seahorse/libseahorse.a libs/seahorse/libseahorse.o
-	@ $(RUN) rm libs/seahorse/libseahorse.o
+	@ $(CXX) seahorse/seahorse.cpp $(STDS) $(DEFS) $(OPTS) $(WFLAGS) $(IPATH) -c -o seahorse/libseahorse.o
+	@ $(RUN) ar rvs seahorse/libseahorse.a seahorse/libseahorse.o
+	@ $(RUN) rm seahorse/libseahorse.o
 
 # Main.cpp file in debug mode
-debug: main.cpp Makefile ./libs/seahorse/libdebugseahorse.a
+debug: main.cpp Makefile ./seahorse/libdebugseahorse.a
 	@echo ${GREEN}[BUILDING]${NC} Debug Version...
 	@ $(call generate_source,main.cpp)
 	@ $(CXX) main.cpp $(STDS) $(DEFS) -UNDEBUG -O0 $(WFLAGS) $(IPATH) $(LPATH) $(LIBS) -ldebugseahorse -g -o ./bin/$@
@@ -72,11 +72,11 @@ debug: main.cpp Makefile ./libs/seahorse/libdebugseahorse.a
 	$(RUN) lldb ./bin/$@ $(ARGS)
 
 # The debugging version of the library
-libs/seahorse/libdebugseahorse.a : $(shell find ./libs/seahorse -type f ! -name libseahorse.a ! -name libdebugseahorse.a) Makefile libs/eigen libs/spectra
+seahorse/libdebugseahorse.a : $(shell find ./seahorse -type f ! -name libseahorse.a ! -name libdebugseahorse.a) Makefile libs/eigen libs/spectra
 	@echo ${GREEN}[BUILDING]${NC} Lib Debug Seahorse...
-	@ $(CXX) libs/seahorse/src/seahorse.cpp $(STDS) $(DEFS) -UNDEBUG -O0 $(WFLAGS) $(IPATH) -c -g -o libs/seahorse/libdebugseahorse.o
-	@ $(RUN) ar rvs libs/seahorse/libdebugseahorse.a libs/seahorse/libdebugseahorse.o
-	@ $(RUN) rm libs/seahorse/libdebugseahorse.o
+	@ $(CXX) seahorse/seahorse.cpp $(STDS) $(DEFS) -UNDEBUG -O0 $(WFLAGS) $(IPATH) -c -g -o seahorse/libdebugseahorse.o
+	@ $(RUN) ar rvs seahorse/libdebugseahorse.a seahorse/libdebugseahorse.o
+	@ $(RUN) rm seahorse/libdebugseahorse.o
 
 
 # We have this checked out at a specific time so don't need to check for changes
@@ -88,7 +88,7 @@ libs/raylib/src/libraylib.a : libs/raylib/src/raylib.h libs/raygui/src/raygui.h
 clean:
 	@echo ${GREEN}[CLEANING]${NC} ...
 	@- rm -rf ./bin/*
-	@- rm libs/seahorse/libseahorse.a
+	@- rm seahorse/libseahorse.a
 	@- find libs/raylib/src/*.o | xargs rm
 
 define generate_source
