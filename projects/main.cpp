@@ -1,7 +1,7 @@
 #include "seahorse.hpp"
 
 // We include the file as `unsigned char sourceFile[]`
-#include "main.asString"
+#include ".sourceFile/main.cpp"
 
 int main()
 {

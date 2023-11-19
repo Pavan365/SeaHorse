@@ -1,7 +1,7 @@
 #include "seahorse.hpp"
 
 // We include the file as `unsigned char sourceFile[]`
-#include "gkp_states.asString"
+#include ".sourceFile/gkp_states.cpp"
 
 int main()
 {

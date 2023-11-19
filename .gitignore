@@ -39,5 +39,5 @@
 /output
 /bin
 
-# Ignore all .asString as they are generated on the fly for includes
-*.asString
+# Ignore all .sourceFile/*.cpp as they are generated on the fly for includes
+/projects/.sourceFile/*.cpp

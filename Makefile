@@ -6,7 +6,7 @@ all : $(project_files)
 $(project_files) : % : projects/%.cpp seahorse/lib/libseahorse.a
 	@mkdir -p bin
 	@echo ${GREEN}[BUILDING]${NC} Release version of $@...
-	@ $(call generate_source,projects/$@)
+	$(call generate_source,$@.cpp)
 	@ $(CXX) $< $(STD) $(W_FLAGS) $(OPTIMISE_FLAGS) $(INCLUDE_PATHS) $(USE_FFTW) $(LIBSEAHORSE) -o ./bin/$(notdir $@)
 	@ $(call clean_up_source)
 
@@ -15,7 +15,7 @@ debug: $(debug_files)
 $(debug_files) : %.debug : projects/%.cpp seahorse/lib/libseahorsed.a
 	@mkdir -p bin
 	@echo ${GREEN}[BUILDING]${NC} Debug version of $(basename $@)...
-	@ $(call generate_source,projects/$(basename $@))
+	@ $(call generate_source,$(basename $@).cpp)
 	@ $(CXX) $< $(STD) $(W_FLAGS) $(DEBUG_FLAGS) $(INCLUDE_PATHS) $(USE_FFTW) $(LIBSEAHORSED) -g -o ./bin/$(notdir $(basename $@))_debug
 	@ $(call clean_up_source)
 
