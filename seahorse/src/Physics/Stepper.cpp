@@ -2,10 +2,10 @@
 
 // Constructor
 Stepper::Stepper() { }
-Stepper::Stepper(double dt, double dx)
+Stepper::Stepper(double dt, HamiltonianFn& H)
     : m_dt(dt)
-    , m_dx(dx)
-    , m_psi_f(CVec::Zero(1))
+    , m_dx(H.hs.dx())
+    , m_psi_f(CVec::Zero(H.hs.dim()))
 {
 }
 

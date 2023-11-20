@@ -1,7 +1,6 @@
 #pragma once
 
 #include "include/Physics/Stepper.hpp"
-#include "include/Physics/Hamiltonian.hpp"
 #include <iostream>
 
 class SplitStepper : public Stepper {

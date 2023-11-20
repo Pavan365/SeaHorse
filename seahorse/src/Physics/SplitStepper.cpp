@@ -5,7 +5,7 @@
 SplitStepper::SplitStepper() { }
 
 SplitStepper::SplitStepper(double dt, HamiltonianFn& H, bool use_imag_pot)
-    : Stepper(dt, H.hs.dx())
+    : Stepper(dt, H)
     , m_V(H.V)
 {
     m_fft.fwd(m_mombuf, m_psi_f);

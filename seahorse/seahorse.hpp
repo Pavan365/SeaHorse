@@ -19,6 +19,7 @@
 #include "include/Optimisation/dCRAB.hpp"
 #include "include/Physics/Hamiltonian.hpp"
 #include "include/Physics/HilbertSpace.hpp"
+#include "include/Physics/Potential.hpp"
 #include "include/Physics/SplitStepper.hpp"
 #include "include/Physics/Stepper.hpp"
 #include "include/Utils/Globals.hpp"

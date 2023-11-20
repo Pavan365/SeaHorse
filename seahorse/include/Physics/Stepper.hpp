@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "include/Physics/Hamiltonian.hpp"
 #include "include/Utils/Globals.hpp"
 
 #include <libs/eigen/Eigen/Core>
@@ -22,7 +23,7 @@ protected:
 public:
     // Constructor
     Stepper();
-    Stepper(double dt, double dx);
+    Stepper(double dt, HamiltonianFn& H);
 
     virtual ~Stepper() {};
     // implementing the clone pattern

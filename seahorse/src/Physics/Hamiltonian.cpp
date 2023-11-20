@@ -138,7 +138,7 @@ void Hamiltonian::calcSpectrum(int num, double smallest_eigenvalue, bool looped)
 }
 
 // Constructor
-HamiltonianFn::HamiltonianFn(HilbertSpace& hs, std::function<RVec(double)> V)
+HamiltonianFn::HamiltonianFn(HilbertSpace& hs, Potential V)
     : hs(hs)
     , V(V)
 {
@@ -159,7 +159,7 @@ HamiltonianFn::HamiltonianFn(HilbertSpace& hs, std::function<RVec(double)> V)
 
 // Construct with no potential
 HamiltonianFn::HamiltonianFn(HilbertSpace& hs)
-    : HamiltonianFn(hs, [dim = hs.dim()](double u) { return RVec::Zero(dim); })
+    : HamiltonianFn(hs, ConstantPotential(hs, RVec::Zero(hs.dim())))
 {
 }
 

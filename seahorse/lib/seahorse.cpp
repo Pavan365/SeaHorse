@@ -13,6 +13,7 @@
 #include "src/Optimisation/dCRAB.cpp"
 #include "src/Physics/Hamiltonian.cpp"
 #include "src/Physics/HilbertSpace.cpp"
+#include "src/Physics/Potential.cpp"
 #include "src/Physics/SplitStepper.cpp"
 #include "src/Physics/Stepper.cpp"
 #include "src/Utils/Random.cpp"

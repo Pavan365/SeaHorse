@@ -1,6 +1,7 @@
 #pragma once
 
 #include "include/Physics/HilbertSpace.hpp"
+#include "include/Physics/Potential.hpp"
 #include "include/Utils/Globals.hpp"
 
 // Spectra
@@ -59,12 +60,12 @@ public:
     HilbertSpace& hs;
     // We might as well store this since we need it for p^2/2m anyway
     RVec p;
-    std::function<RVec(double)> V;
+    Potential V;
     // Shifted momentum space kinetic operator
     RVec T_p;
 
     // Constructor
-    HamiltonianFn(HilbertSpace& hs, std::function<RVec(double)> V);
+    HamiltonianFn(HilbertSpace& hs, Potential V);
 
     // Construct with no potential
     HamiltonianFn(HilbertSpace& hs);
@@ -72,9 +73,3 @@ public:
     // Evaluate HFn to H
     Hamiltonian operator()(double u);
 };
-
-template <typename T>
-std::function<RVec(double)> makePotential(T V)
-{
-    return [V](double phase) { return (RVec)V(phase); };
-}
