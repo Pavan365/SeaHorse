@@ -8,7 +8,7 @@ int main()
     Timer timer;
     timer.Start();
 
-    const int dim = 1 << 10;
+    const int dim = 1 << 11;
     const auto k = sqrt(2);
     const auto xlim = PI / k / 2 * 4;
     const double dt = 0.001;
@@ -19,18 +19,15 @@ int main()
     const RVec x = hs.x();
     const auto depth = 400;
 
-    // We MUST return an RVec not an Eigen::Expression or the memory is freed and
-    // we get a segfault in some cases
-    std::function<RVec(double)> V0 = [=](double phase) {
-        return RVec(-0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2));
-    };
+    RVec V0 = RVec(-0.5 * depth * (cos(2 * k * x) + 1) * box(x, -PI / k / 2, PI / k / 2));
+    auto V = ShakenPotential(hs, V0);
 
-    HamiltonianFn H(hs, V0);
+    HamiltonianFn H(hs, V);
     Hamiltonian H0 = H(0);
 
     SplitStepper stepper = SplitStepper(dt, H);
 
-    Cost cost = StateTransfer(stepper, H0[0], H0[1]) + StateTransfer(stepper, H0[1],H0[0]) + 1e3 * makeBoundaries(-1, 1) + 1e-6 * makeRegularisation();
+    Cost cost = StateTransfer(stepper, H0[0], H0[1]) + 1e3 * makeBoundaries(-1, 1) + 1e-6 * makeRegularisation();
 
     Basis basis = Basis::TRIG(t, 8.5, 10);
 
@@ -42,7 +39,6 @@ int main()
 
     dCRAB optimiser = dCRAB(basis, stopper, cost, saver);
     optimiser.optimise(5);
-
 
     timer.Stop("(Main)");
     return 0;

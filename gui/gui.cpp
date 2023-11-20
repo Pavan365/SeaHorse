@@ -1,8 +1,7 @@
-#include "gui/GuiComponents.cpp"
 #include "seahorse.hpp"
 
-#include "libs/raygui/src/raygui.hpp"
-#include "libs/raylib/src/raylib.hpp"
+#include "gui/GuiComponents.cpp"
+#include "libs/raylib/src/raylib.h"
 
 float fontSize = 15;
 float padding = 8;
@@ -73,6 +72,7 @@ struct SettingsState {
     int psi_0_active = 0;
     bool psi_0_edit = false;
 
+    // CVec psi_0;
     CVec psi_t;
 };
 
@@ -124,7 +124,7 @@ public:
 
         plotSpace = graph({ state->rect_evolution.x + 0, state->rect_evolution.y + 24, 440, 240 });
         plotControl = graph({ state->rect_evolution.x + 0, state->rect_evolution.y + 304, 312, 128 });
-        stepper = SplitStepper(state->dt, H, psi_0);
+        stepper = SplitStepper(state->dt, H);
         control = RVec::Zero(state->num_steps);
 
         psireal = plotSpace.plot(x, stepper.state().real(), "Real", RED, 0.5);
@@ -147,13 +147,13 @@ public:
             : state->psi_0_active == 2        ? H0[2]
                                               : H0[0] + H0[1];
 
-        SplitStepper stepper = SplitStepper(state->dt, H, psi_0);
+        SplitStepper stepper = SplitStepper(state->dt, H);
         Basis basis = Basis::TRIG(t, 8.4, 10);
-        Stopper stopper = Stopper(0.99, 100);
-        Cost cost = Cost(state->psi_t);
+        Stopper stopper = FidStopper(0.99) + IterStopper(100) + StallStopper(20);
+        Cost cost = StateTransfer(stepper, H0[0], H0[1]);
         SaveFn saver = [](const Optimiser& opt) { S_INFO(opt.num_iterations, "\tfid= ", opt.bestControl.fid); };
 
-        dCRAB optimiser = dCRAB(basis, stepper, stopper, cost, saver);
+        dCRAB optimiser = dCRAB(basis, stopper, cost, saver);
         optimiser.optimise(5);
 
         controls_vec.push_back(optimiser.bestControl.control);
@@ -168,7 +168,7 @@ public:
         auto hs = HilbertSpace(state->dim, state->xlim);
 
         HamiltonianFn H(hs, state->V0);
-        Hamiltonian H0 = H(control[currentStep]);
+        Hamiltonian H0 = H(control[0]);
         CVec psi_0 = state->psi_0_active == 0 ? H0[0] : state->psi_0_active == 1 ? H0[1]
             : state->psi_0_active == 2                                           ? H0[2]
                                                                                  : H0[0] + H0[1];
@@ -177,7 +177,7 @@ public:
         psireal->updateYData(stepper.state().real());
         psiimag->updateYData(stepper.state().imag());
         psiabs->updateYData(stepper.state().cwiseAbs());
-        vline->updateYData(state->V0(control[currentStep]));
+        vline->updateYData(state->V0(control[0]));
     }
     void setControl()
     {
@@ -186,9 +186,16 @@ public:
         plotControl.plot(t, control, "", BLACK);
         reset();
 
-        stepper.evolve(control);
+        auto hs = HilbertSpace(state->dim, state->xlim);
+
+        HamiltonianFn H(hs, state->V0);
+        Hamiltonian H0 = H(control[0]);
+        CVec psi_0 = state->psi_0_active == 0 ? H0[0] : state->psi_0_active == 1 ? H0[1]
+            : state->psi_0_active == 2                                           ? H0[2]
+                                                                                 : H0[0] + H0[1];
+
+        stepper.evolve(psi_0, control);
         fid = TextFormat("Fid: %.2f", fidelity(state->psi_t, stepper.state()));
-        stepper.reset();
     }
     void step()
     {
@@ -203,9 +210,7 @@ public:
             vline->updateYData(state->V0(control[currentStep]));
             progress = (float)currentStep / (float)t.size();
         } else {
-            currentStep = 0;
-            progress = 0;
-            stepper.reset();
+            reset();
         }
     }
     void update()
@@ -230,7 +235,7 @@ int main()
     //---------------------------------------------------------------------------------------
 
     SetTraceLogLevel(LOG_WARNING);
-    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT | FLAG_WINDOW_TOPMOST);
+    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT );//| FLAG_WINDOW_TOPMOST);
     InitWindow(1000, 630, "Seahorse");
     SetExitKey(KEY_NULL);
     SetTargetFPS(30);
