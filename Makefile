@@ -25,7 +25,7 @@ gui: bin/gui
 bin/gui: gui/gui.cpp Makefile seahorse/lib/libseahorse.a libs/raylib/src/libraylib.a
 	@mkdir -p bin
 	@echo ${GREEN}[BUILDING]${NC} Graphical Version...
-	@ $(CXX) $(FRAMEWORKS) $(STD) $(W_FLAGS) $(OPTIMISE_FLAGS) $(INCLUDE_PATHS) $(LIBRAYLIB) $(LIBSEAHORSED) gui/gui.cpp -o ./bin/gui
+	@ $(CXX) $(FRAMEWORKS) $(STD) $(W_FLAGS) $(OPTIMISE_FLAGS) $(INCLUDE_PATHS) $(LIBRAYLIB) $(USE_FFTW) $(LIBSEAHORSE) gui/gui.cpp -o ./bin/gui
 	@echo ${GREEN}[RUNNING]${NC}
 	$(RUN) ./bin/gui $(ARGS)
 
