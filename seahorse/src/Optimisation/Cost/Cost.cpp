@@ -4,13 +4,14 @@
 
 EvaluatedControl Cost::operator()(const RVec& u)
 {
-    EvaluatedControl eval = { .control = u, .cost = 0, .fid = 0 };
+    EvaluatedControl eval = { .control = u, .cost = 0, .fid = 0, .norm = 1 };
 
     // Evaluate the cost of each transfer
     for (auto& transfer : transfers) {
         transfer(u);
         eval.cost += transfer.eval.cost;
         eval.fid += transfer.eval.fid;
+        eval.norm = std::min(eval.norm, transfer.eval.norm);
         fpp++;
     }
     // pseudo-fidelity by normalizing the fidelity by the number of transfers
@@ -42,8 +43,9 @@ Cost Cost::operator+(StateTransfer st)
     this->transfers.push_back(st);
     return *this;
 }
-Cost operator+(StateTransfer st, Cost c) {
-    return c+st;
+Cost operator+(StateTransfer st, Cost c)
+{
+    return c + st;
 }
 
 Cost Cost::operator+(ControlCost cc)
@@ -51,8 +53,9 @@ Cost Cost::operator+(ControlCost cc)
     this->components.push_back(cc);
     return *this;
 }
-Cost operator+(ControlCost cc, Cost c) {
-    return c+cc;
+Cost operator+(ControlCost cc, Cost c)
+{
+    return c + cc;
 }
 
 Cost operator+(StateTransfer st1, StateTransfer st2)

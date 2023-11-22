@@ -159,7 +159,7 @@ void dCRAB::optimise(int dressings)
         step();
     }
     S_INFO("dCRAB finished with {", num_iterations, " iters, ", fpp, " fpps, ",
-        bestControl.fid, " fid, ", bestControl.cost, " cost}");
+        bestControl.fid, " fid, ", bestControl.norm, " norm, ", bestControl.cost, " cost}");
 }
 
 void dCRAB::updateBest(EvaluatedControl& newBest)

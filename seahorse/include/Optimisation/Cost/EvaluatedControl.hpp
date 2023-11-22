@@ -7,6 +7,7 @@ struct EvaluatedControl {
     RVec control;
     double cost;
     double fid;
+    double norm;
 
     inline bool operator<(const EvaluatedControl& other) const
     {
