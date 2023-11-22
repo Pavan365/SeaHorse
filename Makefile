@@ -33,7 +33,7 @@ bin/gui: gui/gui.cpp Makefile seahorse/lib/libseahorse.a libs/raylib/src/librayl
 # We have this checked out at a specific time so don't need to check for changes
 libs/raylib/src/libraylib.a :
 	@echo ${GREEN}[BUILDING]${NC} Lib Raylib...
-	@ (cd libs/raylib/src && make PLATFORM=PLATFORM_DESKTOP RAYLIB_MODULE_RAYGUI=TRUE)
+	@ (cd libs/raylib/src && make PLATFORM=PLATFORM_DESKTOP RAYLIB_MODULE_RAYGUI=TRUE CUSTOM_CFLAGS=-Wno-unused-function)
 
 # NB This must have EXACTLY the same architecture/optimisation flags set as the main build
 seahorse/lib/libseahorse.a : $(shell find ./seahorse -type f ! -name '*.a') Makefile
