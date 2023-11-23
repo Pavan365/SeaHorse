@@ -5,12 +5,13 @@
 
 int main()
 {
+    srand(get_rand_seed());
     Timer timer;
     timer.Start();
 
     const int dim = 1 << 11;
     const auto k = sqrt(2);
-    const auto xlim = PI / k / 2 * 4;
+    const auto xlim = PI / k / 2 * 3;
     const double dt = 0.001;
     const int numSteps = 3e3;
     const RVec t = RVec::LinSpaced(numSteps, 0, dt * numSteps);
@@ -19,18 +20,16 @@ int main()
     const RVec x = hs.x();
     const auto depth = 400;
 
-    RVec V0 = RVec(-0.5 * depth * (cos(2 * k * x) + 1) * box(x, -PI / k / 2, PI / k / 2));
-    auto V = ShakenPotential(hs, V0);
+    Potential V = ShakenPotential(hs, RVec(-0.5 * depth * (cos(2 * k * x) + 1) * box(x, -PI / k / 2, PI / k / 2)));
 
     HamiltonianFn H(hs, V);
     Hamiltonian H0 = H(0);
 
     SplitStepper stepper = SplitStepper(dt, H);
 
-    Cost cost = StateTransfer(stepper, H0[0], H0[1]) + 1e3 * makeBoundaries(-1, 1) + 1e-6 * makeRegularisation();
+    Cost cost = StateTransfer(stepper, H0[0], H0[1]) + 1e3 * makeBoundaries(PI / k / 2) + 1e-6 * makeRegularisation();
 
     Basis basis = Basis::TRIG(t, 8.5, 10);
-
     Stopper stopper = FidStopper(0.99) + IterStopper(100) + StallStopper(20);
 
     SaveFn saver = [](const Optimiser& opt) {

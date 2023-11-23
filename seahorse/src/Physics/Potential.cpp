@@ -3,21 +3,10 @@
 #include "include/Physics/Potential.hpp"
 
 RVec Potential::AmplitudeModulatedV(double amp) const { return m_V * amp; };
-// we use linear interpolation to translate the vector
+// we use cubic spline interpolation which results in low error ~1e-5 for nice potentials
 RVec Potential::ShakenV(double x0) const
 {
-    static double xSize = m_x.size();
-    static double xRange = m_x.maxCoeff() - m_x.minCoeff();
-    // Start of our desired window [the 1.0 is due to us tripling our range]
-    double full_offset = xSize * (1.0 - x0 / xRange);
-    // Avoid OOB errors
-    full_offset = std::max(std::min(full_offset, 2 * xSize - 1), 0.0);
-
-    int offset = std::floor(full_offset);
-    double frac = full_offset - offset;
-
-    RVec newV = (1 - frac) * m_V.segment(offset, xSize) + frac * m_V.segment(offset + 1, xSize);
-    return newV;
+    return spline.resample_shifted(x0);
 };
 
 RVec Potential::operator()(double control) const
@@ -34,22 +23,73 @@ RVec Potential::operator()(double control) const
     };
 };
 
+void Potential::initSpline()
+{
+    if (m_type == Type::SHAKEN) {
+        // extend the domain of the spline
+        int xSize = m_x.size();
+
+        // RVec tempx(xSize * 3);
+        double range = m_x[xSize - 1] - m_x[0] + (m_x[1] - m_x[0]);
+
+        std::vector<double> vectorx;
+        RVec tempx = m_x - range;
+        vectorx.insert(vectorx.end(), tempx.begin(), tempx.end());
+        vectorx.insert(vectorx.end(), m_x.begin(), m_x.end());
+        tempx = m_x + range;
+        vectorx.insert(vectorx.end(), tempx.begin(), tempx.end());
+
+        std::vector<double> vectorv;
+        RVec tempv = RVec::Constant(xSize, m_V[0]);
+        vectorv.insert(vectorv.end(), tempv.begin(), tempv.end());
+        vectorv.insert(vectorv.end(), m_V.begin(), m_V.end());
+        tempv = RVec::Constant(xSize, m_V[xSize - 1]);
+        vectorv.insert(vectorv.end(), tempv.begin(), tempv.end());
+
+        spline.set_points(vectorx, vectorv);
+
+        return;
+    }
+};
+
+// copy constructor
+Potential::Potential(const Potential& other)
+    : m_x(other.m_x)
+    , m_V(other.m_V)
+    , m_type(other.m_type)
+    , m_Vfn(other.m_Vfn)
+{
+    initSpline();
+};
+
+// move constructor
+Potential::Potential(Potential&& other)
+    : m_x(other.m_x)
+    , m_V(other.m_V)
+    , m_type(other.m_type)
+    , m_Vfn(other.m_Vfn)
+{
+    initSpline();
+};
+
 // Specific control methods
 Potential::Potential(HilbertSpace& hs, const RVec& V, Type type)
     : m_x(hs.x())
     , m_V(V)
     , m_type(type)
 {
-    // If we are shaking we need to extend V
-    if (m_type == Type::SHAKEN) {
-        int xSize = m_x.size();
-        m_V = RVec::Zero(xSize * 3);
-        m_V.segment(0, xSize) = RVec::Constant(xSize, V[0]);
-        m_V.segment(xSize, xSize) = V;
-        m_V.segment(2 * xSize, xSize) = RVec::Constant(xSize, V[V.size() - 1]);
-    };
+    initSpline();
 };
 
-Potential ShakenPotential(HilbertSpace& hs, const RVec& V) { return Potential(hs, V, Potential::Type::SHAKEN); };
-Potential AmplitudePotential(HilbertSpace& hs, const RVec& V) { return Potential(hs, V, Potential::Type::AMPLITUDE); };
-Potential ConstantPotential(HilbertSpace& hs, const RVec& V) { return Potential(hs, V, Potential::Type::CONSTANT); };
+Potential ConstantPotential(HilbertSpace& hs, const RVec& V)
+{
+    return Potential(hs, V, Potential::Type::CONSTANT);
+};
+Potential AmplitudePotential(HilbertSpace& hs, const RVec& V)
+{
+    return Potential(hs, V, Potential::Type::AMPLITUDE);
+};
+Potential ShakenPotential(HilbertSpace& hs, const RVec& V)
+{
+    return Potential(hs, V, Potential::Type::SHAKEN);
+};
