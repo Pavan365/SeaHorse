@@ -6,18 +6,14 @@ all : $(project_files)
 $(project_files) : % : projects/%.cpp seahorse/lib/libseahorse.a
 	@mkdir -p bin
 	@echo ${GREEN}[BUILDING]${NC} Release version of $@...
-	@$(call generate_source,$@.cpp)
 	@- $(CXX) $< $(STD) $(W_FLAGS) $(OPTIMISE_FLAGS) $(INCLUDE_PATHS) $(USE_FFTW) $(LIBSEAHORSE) -o ./bin/$(notdir $@)
-	@ $(call clean_up_source)
 
 debug_files = $(patsubst %, %.debug, $(project_files))
 debug: $(debug_files)
 $(debug_files) : %.debug : projects/%.cpp
 	@mkdir -p bin
 	@echo ${GREEN}[BUILDING]${NC} Debug version of $(basename $@)...
-	@ $(call generate_source,$(basename $@).cpp)
 	@- $(CXX) $< $(STD) $(W_FLAGS) $(DEBUG_FLAGS) $(INCLUDE_PATHS) $(USE_FFTW) -g -o ./bin/$(notdir $(basename $@))_debug
-	@ $(call clean_up_source)
 
 ####### GUI VERSION #######
 # Graphical Interface - (this is also inserted into the seahorse.app)

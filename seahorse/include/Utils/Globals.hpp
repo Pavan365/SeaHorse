@@ -2,6 +2,11 @@
 #include <chrono>
 #include <complex>
 #include <iostream>
+
+#define INCBIN_PREFIX
+#include "include/Utils/incbin.h"
+#define INCLUDE_sourceFile INCBIN(sourceFile, __FILE__);
+
 #include <libs/eigen/Eigen/Core>
 #include <libs/eigen/Eigen/Dense>
 #include <libs/eigen/Eigen/SparseCore>
