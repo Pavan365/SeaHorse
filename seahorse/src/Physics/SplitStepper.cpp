@@ -49,17 +49,18 @@ void SplitStepper::evolve(const CVec& psi_0, const RVec& control)
     // Timer timer;
     // Initial half step T/2
     m_fft.fwd(m_mombuf, m_psi_f);
-    m_mombuf = m_mombuf.array().cwiseProduct(m_T_exp_2.array());
-    // Main loop V,T full steps
+    m_mombuf = m_mombuf.array()
+                   .cwiseProduct(m_T_exp_2.array());
 
+    // Main loop V,T full steps
     for (int i = 0; i < control.size() - 1; i++) {
         m_fft.inv(m_psi_f, m_mombuf);
-        // the big cost here is calling m_V(control[i]) - it tends to use about the same time as everything else combined
         m_psi_f = m_psi_f.array()
                       .cwiseProduct((-1.0i * m_dt * m_V(control[i]).array()).exp())
                       .cwiseProduct(imagPot.array());
         m_fft.fwd(m_mombuf, m_psi_f);
-        m_mombuf = m_mombuf.array().cwiseProduct(m_T_exp.array());
+        m_mombuf = m_mombuf.array()
+                       .cwiseProduct(m_T_exp.array());
     }
 
     // Finishing out the last V,T/2
@@ -68,7 +69,8 @@ void SplitStepper::evolve(const CVec& psi_0, const RVec& control)
                   .cwiseProduct((-1.0i * m_dt * m_V(control[control.size() - 1]).array()).exp())
                   .cwiseProduct(imagPot.array());
     m_fft.fwd(m_mombuf, m_psi_f);
-    m_mombuf = m_mombuf.array().cwiseProduct(m_T_exp_2.array());
+    m_mombuf = m_mombuf.array()
+                   .cwiseProduct(m_T_exp_2.array());
     m_fft.inv(m_psi_f, m_mombuf);
 
     // S_INFO("Stepped ", control.size(), " times in ", timer.Elapsed(), " seconds");
