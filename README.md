@@ -26,14 +26,16 @@ On first run you need to initialise and update the submodules:
 `git submodule update`
 
 ## Building
-We use the make build system. This is setup to separate the build of user programs and the seahorse library, which massively decreases compile times.
+We use the make build system (with a little bit of cmake behind the scenes). This is designed to separate the build of user programs and the seahorse library, which massively decreases compile times.
 
 Any *.cpp in the projects file can be built using:
 
 `make *` 
 
-or for debugging 
+which links the static library. For debugging 
 
 `make *.debug`
 
-Which will create an executable in /bin.
+Which will include seahorse to enhance debugging.
+
+Both will create an executable in /bin.
