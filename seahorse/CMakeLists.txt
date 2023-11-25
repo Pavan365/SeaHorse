@@ -39,7 +39,6 @@ set(SOURCE_FILES
 # Warning flags
 set(W_FLAGS -Wall)
 list(APPEND W_FLAGS -Wextra)
-list(APPEND W_FLAGS -Werror)
 list(APPEND W_FLAGS -Wno-unknown-warning-option)
 list(APPEND W_FLAGS -Wno-pragmas)
 

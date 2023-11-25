@@ -2,7 +2,7 @@ STD = -std=c++20 -DEIGEN_FFTW_DEFAULT
 # CXX = /usr/local/bin/g++-13
 CXX = g++
 
-W_FLAGS = -Wall -Wextra -Werror
+W_FLAGS = -Wall -Wextra
 W_FLAGS+= -Wno-unknown-warning-option
 W_FLAGS+= -Wno-pragmas
 

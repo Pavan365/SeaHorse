@@ -22,8 +22,7 @@ int main()
     Hamiltonian H0 = H(0);
 
     SplitStepper stepper = SplitStepper(dt, H);
-    RVec randControl = RVec::Random(1e5);
-    stepper.evolve(H0[0], randControl);
+
     Cost cost = StateTransfer(stepper, H0[0], H0[1]) + 1e3 * makeBoundaries(PI / k / 2) + 1e-6 * makeRegularisation();
 
     const RVec t = RVec::LinSpaced(numSteps, 0, dt * numSteps);
