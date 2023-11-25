@@ -30,11 +30,11 @@ We use the make build system (with a little bit of cmake behind the scenes). Thi
 
 Any *.cpp in the projects file can be built using:
 
-`make *` 
+`make * -j8` 
 
 which links the static library. For debugging 
 
-`make *.debug`
+`make *.debug -j8`
 
 Which will include seahorse to enhance debugging.
 
