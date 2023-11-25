@@ -4,7 +4,7 @@
 #include <iostream>
 
 #define INCBIN_PREFIX
-#include "include/Utils/incbin.h"
+#include "include/Utils/incbin.hpp"
 #define INCLUDE_sourceFile INCBIN(sourceFile, __FILE__);
 
 #include <libs/eigen/Eigen/Core>
@@ -44,6 +44,9 @@ template <typename... Args>
 void S_INFO_IMPL(Args&&... args)
 {
     std::ostringstream stream;
+#ifndef NDEBUG
+    stream << "\033[93m[DEBUG MODE]\033[0m ";
+#endif
     stream << "\033[92m[INFO] \033[0m";
     (stream << ... << std::forward<Args>(args)) << '\n';
 

@@ -43,4 +43,4 @@ HilbertSpace::HilbertSpace(int dim, double xlim)
 RVec HilbertSpace::x() const { return m_x; }
 double HilbertSpace::dx() const { return m_dx; }
 int HilbertSpace::dim() const { return m_dim; }
-inline Eigen::SparseMatrix<double> HilbertSpace::T() const { return m_T; } // Kinetic operator
+Eigen::SparseMatrix<double> HilbertSpace::T() const { return m_T; } // Kinetic operator

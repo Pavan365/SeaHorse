@@ -1,6 +1,4 @@
 #include "include/Optimisation/Cost/Cost.hpp"
-#include "src/Optimisation/Cost/ControlCost.cpp"
-#include "src/Optimisation/Cost/StateTransferCost.cpp"
 
 EvaluatedControl Cost::operator()(const RVec& u)
 {

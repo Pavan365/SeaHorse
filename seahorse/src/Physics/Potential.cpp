@@ -1,5 +1,3 @@
-#pragma once
-
 #include "include/Physics/Potential.hpp"
 
 RVec Potential::AmplitudeModulatedV(double amp) const { return m_V * amp; };
