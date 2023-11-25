@@ -82,7 +82,13 @@ seahorse/libseahorse.a: seahorse/Makefile
 .PHONY: clean
 clean:
 	@echo ${GREEN}[CLEANING]${NC} ...
+# clear executables
 	@- rm -r bin && mkdir -p bin
+#  clear object files/libraries
 	@- find ./seahorse -type f -name '*.[oa]' | xargs rm
 	@- rm ./libs/raylib/src/libraylib.a
+# clear cmake files
 	@- cd seahorse && make clean && cmake . --fresh
+# these are incase --fresh isn't supported
+	@- rm seahorse/CMakeCache.txt
+	@- rm -rf seahorse/CMakeFiles

@@ -39,3 +39,12 @@ which links the static library. For debugging
 Which will include seahorse to enhance debugging.
 
 Both will create an executable in /bin.
+
+
+
+## On the BC4 Cluster
+* Load modules:
+        - tools/cmake/3.20.0
+        - languages/gcc/10.4.0
+- we need to ensure configuration with these properties
+- we need to ensure the default cmake/g++ are the ones we just loaded
