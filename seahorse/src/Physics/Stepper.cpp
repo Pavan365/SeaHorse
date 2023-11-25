@@ -11,7 +11,7 @@ Stepper::Stepper(double dt, HamiltonianFn& H)
 
 std::unique_ptr<Stepper> Stepper::clone() const { return std::unique_ptr<Stepper>(this->clone_impl()); }
 
-const CVec Stepper::state() const { return m_psi_f; };
+CVec Stepper::state() const { return m_psi_f; }
 
-const double Stepper::dt() const { return m_dt; }
-const double Stepper::dx() const { return m_dx; }
+double Stepper::dt() const { return m_dt; }
+double Stepper::dx() const { return m_dx; }

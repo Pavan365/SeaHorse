@@ -1,11 +1,11 @@
 #include "include/Physics/Potential.hpp"
 
-RVec Potential::AmplitudeModulatedV(double amp) const { return m_V * amp; };
+RVec Potential::AmplitudeModulatedV(double amp) const { return m_V * amp; }
 // we use cubic spline interpolation which results in low error ~1e-5 for nice potentials
 RVec Potential::ShakenV(double x0) const
 {
     return spline.resample_shifted(x0);
-};
+}
 
 RVec Potential::operator()(double control) const
 {
@@ -18,8 +18,10 @@ RVec Potential::operator()(double control) const
         return ShakenV(control);
     case Type::CUSTOM:
         return m_Vfn(control);
+    default:
+        throw std::runtime_error("Unknown potential type");
     };
-};
+}
 
 void Potential::initSpline()
 {
@@ -48,7 +50,7 @@ void Potential::initSpline()
 
         return;
     }
-};
+}
 
 // copy constructor
 Potential::Potential(const Potential& other)
@@ -58,7 +60,7 @@ Potential::Potential(const Potential& other)
     , m_Vfn(other.m_Vfn)
 {
     initSpline();
-};
+}
 
 // move constructor
 Potential::Potential(Potential&& other)
@@ -68,7 +70,7 @@ Potential::Potential(Potential&& other)
     , m_Vfn(other.m_Vfn)
 {
     initSpline();
-};
+}
 
 // Specific control methods
 Potential::Potential(HilbertSpace& hs, const RVec& V, Type type)
@@ -77,17 +79,17 @@ Potential::Potential(HilbertSpace& hs, const RVec& V, Type type)
     , m_type(type)
 {
     initSpline();
-};
+}
 
 Potential ConstantPotential(HilbertSpace& hs, const RVec& V)
 {
     return Potential(hs, V, Potential::Type::CONSTANT);
-};
+}
 Potential AmplitudePotential(HilbertSpace& hs, const RVec& V)
 {
     return Potential(hs, V, Potential::Type::AMPLITUDE);
-};
+}
 Potential ShakenPotential(HilbertSpace& hs, const RVec& V)
 {
     return Potential(hs, V, Potential::Type::SHAKEN);
-};
+}

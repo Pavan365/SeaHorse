@@ -3,6 +3,7 @@
 #include "include/Physics/HilbertSpace.hpp"
 #include "include/Physics/Potential.hpp"
 #include "include/Utils/Globals.hpp"
+#include "include/Utils/Timer.hpp"
 
 // Spectra
 // #include <libs/spectra/include/Spectra/MatOp/SparseSymMatProd.h>

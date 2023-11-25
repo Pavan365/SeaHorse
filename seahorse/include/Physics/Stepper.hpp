@@ -36,7 +36,7 @@ public:
     virtual void step(double u) = 0;
     virtual void evolve(const CVec& psi_0,const RVec& control) = 0;
 
-    const CVec state() const;
-    const double dt() const;
-    const double dx() const;
+    CVec state() const;
+    double dt() const;
+    double dx() const;
 };

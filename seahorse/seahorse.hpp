@@ -2,7 +2,7 @@
 
 // standard libs
 #include <complex>
-#include <format>
+// #include <format>
 #include <iostream>
 
 // link library if we aren't debugging
@@ -10,6 +10,7 @@
 // Be careful - both declaration and definition to allow templated Eigen returns
 #include "include/Physics/Vectors.hpp"
 #include "include/Utils/Globals.hpp"
+#include "include/Utils/Timer.hpp"
 
 #include "src/Optimisation/Basis/Basis.cpp"
 #include "src/Optimisation/Cost/ControlCost.cpp"
@@ -31,6 +32,7 @@
 // Be careful - both declaration and definition to allow templated Eigen returns
 #include "include/Physics/Vectors.hpp"
 #include "include/Utils/Globals.hpp"
+#include "include/Utils/Timer.hpp"
 
 // Seahorse - just headers
 #include "include/Optimisation/Basis/Basis.hpp"

@@ -2,7 +2,7 @@
 #include "include/Optimisation/Stopper/Stopper.hpp"
 #include <string>
 
-bool StopComponent::operator()(Optimiser& opt) { return criteria(opt); };
+bool StopComponent::operator()(Optimiser& opt) { return criteria(opt); }
 
 StopComponent FidStopper(double fid)
 {
@@ -11,7 +11,7 @@ StopComponent FidStopper(double fid)
     };
     std::string text = "Fidelity Criterion Reached (" + std::to_string(fid) + ")";
     return StopComponent(text, std::move(criteria));
-};
+}
 
 StopComponent IterStopper(int iter)
 {
@@ -20,7 +20,7 @@ StopComponent IterStopper(int iter)
     };
     std::string text = "Max Iterations Reached (" + std::to_string(iter) + ")";
     return StopComponent(text, std::move(criteria));
-};
+}
 
 StopComponent StallStopper(int stepsSinceImprovement)
 {
@@ -29,4 +29,4 @@ StopComponent StallStopper(int stepsSinceImprovement)
     };
     std::string text = "No Improvement for " + std::to_string(stepsSinceImprovement) + " steps";
     return StopComponent(text, std::move(criteria));
-};
+}

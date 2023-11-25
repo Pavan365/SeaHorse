@@ -121,7 +121,7 @@ void dCRAB::step()
 
     // SHRINK
     // shrink all points towards best point
-    for (auto i = 1; i < simplex.size(); i++) {
+    for (size_t i = 1; i < simplex.size(); i++) {
         RVec new_pt = simplex.front().coeffs + sigma * (simplex[i].coeffs - simplex.front().coeffs);
         auto eval = cost(basis->control(new_pt));
         simplex[i] = { new_pt, eval.cost };

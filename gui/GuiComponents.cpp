@@ -186,7 +186,7 @@ public:
         if (xData.size() == 0 || yData.size() == 0) {
             return;
         }
-        for (auto i = 0; i < xData.size() - 1; i++) {
+        for (size_t i = 0; i < xData.size() - 1; i++) {
             start = { xToPos(xData[i]), yToPos(yData[i]) };
             end = { xToPos(xData[i + 1]), yToPos(yData[i + 1]) };
             if (lineWidth != 0)
@@ -288,8 +288,8 @@ public:
         if (xData.size() == 0 || yData.size() == 0) {
             return;
         }
-        for (auto x = 0; x < zData.size(); x++) {
-            for (auto y = 0; y < zData[x].size(); y++) {
+        for (size_t x = 0; x < zData.size(); x++) {
+            for (size_t y = 0; y < zData[x].size(); y++) {
                 Color c = ColorFromHSV(zData[x][y] * 2.55, 0.5, 0.5);
                 DrawRectangle(floor(xOrigin + xWidth * x), floor(yOrigin + yWidth * y),
                     ceil(xWidth), ceil(yWidth), c);
@@ -709,7 +709,7 @@ public:
                 DrawRectangleRounded(legend_rect, 0.1, 10, WHITE);
                 DrawRectangleRoundedLines(legend_rect, 0.1, 10, 2, DARKGRAY);
                 float heightSoFar = 0;
-                for (auto i = 0; i < names.size(); i++) {
+                for (size_t i = 0; i < names.size(); i++) {
                     auto loc = Vector2 { legend_rect.x + 3 * padding,
                         legend_rect.y + padding + heightSoFar };
                     DrawTextEx(fontTtf2, names[i].c_str(), alignVector2(loc), fontSize2,
@@ -742,7 +742,7 @@ public:
             fontSize, 0, BLACK);
 
         // Draw ticks + numbers
-        for (auto i = 0; i < xTicks.size(); i++) {
+        for (size_t i = 0; i < xTicks.size(); i++) {
             auto xtick = xTicks.at(i);
             auto xticklabel = xTickLabels.at(i).c_str();
             DrawLineEx(Vector2 { xToPos(xtick), data_bounds.y + data_bounds.height },
@@ -761,7 +761,7 @@ public:
                 DARKGRAY);
         }
         float lastpos = yToPos(lims[2]); // make sure ticklabels dont overlap
-        for (auto i = 0; i < yTicks.size(); i++) {
+        for (size_t i = 0; i < yTicks.size(); i++) {
             auto ytick = yTicks.at(i);
             auto yticklabel = yTickLabels.at(i).c_str();
             DrawLineEx(Vector2 { data_bounds.x, yToPos(ytick) },

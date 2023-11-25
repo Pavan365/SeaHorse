@@ -38,7 +38,7 @@ HilbertSpace::HilbertSpace(int dim, double xmin, double xmax)
 }
 
 HilbertSpace::HilbertSpace(int dim, double xlim)
-    : HilbertSpace(dim, -xlim, xlim) {};
+    : HilbertSpace(dim, -xlim, xlim) {}
 
 RVec HilbertSpace::x() const { return m_x; }
 double HilbertSpace::dx() const { return m_dx; }

@@ -1,15 +1,21 @@
 #pragma once
 #include <chrono>
 #include <complex>
+#include <functional>
 #include <iostream>
 
 #define INCBIN_PREFIX
 #include "include/Utils/incbin.hpp"
-#define INCLUDE_sourceFile INCBIN(sourceFile, __FILE__);
+#define INCLUDE_sourceFile INCBIN(sourceFile, __FILE__)
 
+// We have to specifically suppress these warnings because of the Eigen library
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#pragma GCC diagnostic ignored "-Wuse-after-free"
 #include <libs/eigen/Eigen/Core>
 #include <libs/eigen/Eigen/Dense>
 #include <libs/eigen/Eigen/SparseCore>
+#pragma GCC diagnostic pop
 
 using RVec = Eigen::VectorXd;
 using CVec = Eigen::VectorXcd;
@@ -17,6 +23,7 @@ using RMat = Eigen::MatrixXd;
 using CMat = Eigen::MatrixXcd;
 
 using namespace std::complex_literals;
+#define PI M_PI
 
 #define S_INFO(...) S_INFO_IMPL(__VA_ARGS__);
 #define S_ERROR(...) S_ERR_IMPL("\033[91m[ERROR]\033[0m", __LINE__, __FILE__, __VA_ARGS__);
@@ -25,10 +32,6 @@ using namespace std::complex_literals;
         S_ERR_IMPL("\033[91m[FATAL]", __LINE__, __FILE__, __VA_ARGS__); \
         exit(EXIT_FAILURE);                                             \
     };
-
-// static constexpr double PI = 3.141592653589793116;
-#define PI M_PI
-
 template <typename... Args>
 void S_ERR_IMPL(const char* type, int line, const char* fileName,
     Args&&... args)
@@ -37,9 +40,8 @@ void S_ERR_IMPL(const char* type, int line, const char* fileName,
     stream << type << " " << fileName << ":" << line << " -> ";
     (stream << ... << std::forward<Args>(args)) << '\n';
 
-    printf(stream.str().c_str());
+    std::cout << stream.str() << std::endl;
 }
-
 template <typename... Args>
 void S_INFO_IMPL(Args&&... args)
 {
@@ -50,67 +52,5 @@ void S_INFO_IMPL(Args&&... args)
     stream << "\033[92m[INFO] \033[0m";
     (stream << ... << std::forward<Args>(args)) << '\n';
 
-    printf(stream.str().c_str());
+    std::cout << stream.str() << std::endl;
 }
-
-inline std::string ordinal(int n)
-{
-    static const char suffixes[][3] = { "th", "st", "nd", "rd" };
-    auto ord = n % 100;
-    if (ord / 10 == 1) {
-        ord = 0;
-    }
-    ord = ord % 10;
-    if (ord > 3) {
-        ord = 0;
-    }
-    return std::to_string(n) + suffixes[ord];
-}
-
-// Global timer
-class Timer {
-private:
-    std::chrono::system_clock::time_point start;
-
-public:
-    Timer()
-        : start(std::chrono::system_clock::now()) {};
-    void Start() { start = std::chrono::system_clock::now(); };
-    void Stop(std::string msg = "")
-    {
-        S_INFO(Elapsed(), " seconds, ", msg);
-    };
-    double Elapsed()
-    {
-        return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - start).count() / 1e6;
-    }
-};
-
-// void GenerateFontFile(std::string fontFile = "resources/UbuntuMonoBold.ttf")
-// {
-//     // Pull in file
-//     unsigned int dataSize = 0;
-//     unsigned char *fileData = LoadFileData(fontFile.c_str(), &dataSize);
-//     // Redirect stdout to the new file
-//     FILE *saved = stdout;
-//     stdout = fopen((fontFile + ".hpp").c_str(), "a");
-
-//     // Write data to file
-//     printf("unsigned char text_txt_data[] = {");
-//     for (auto i = 0; i < dataSize; i++)
-//     {
-//         if (fileData[i] == 0)
-//         {
-//             printf("0x00,");
-//         }
-//         else
-//         {
-//             printf("%#04x,", fileData[i]);
-//         }
-//     }
-//     printf("};");
-
-//     // Replace stdout
-//     fclose(stdout);
-//     stdout = saved;
-// }

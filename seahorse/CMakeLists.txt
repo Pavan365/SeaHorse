@@ -3,11 +3,14 @@
 # This allows dependency specific rebuilds
 
 cmake_minimum_required(VERSION 3.10)
-project(SeaHorse)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 set(CMAKE_CXX_EXTENSIONS Off)
+
+# set(CMAKE_CXX_COMPILER "/usr/local/bin/g++-13")
+
+project(SeaHorse)
 
 # List seahorse source files
 set(SOURCE_FILES
@@ -34,11 +37,10 @@ set(SOURCE_FILES
 
 # Warning flags
 set(W_FLAGS -Wall)
-list(APPEND W_FLAGS -Wpedantic)
-list(APPEND W_FLAGS -Wno-deprecated-declarations)
-list(APPEND W_FLAGS -Wno-format-security)
-list(APPEND W_FLAGS -Wno-deprecated-enum-compare-conditional)
-list(APPEND W_FLAGS -Wno-deprecated-anon-enum-enum-conversion)
+list(APPEND W_FLAGS -Wextra)
+list(APPEND W_FLAGS -Werror)
+list(APPEND W_FLAGS -Wno-unknown-warning-option)
+list(APPEND W_FLAGS -Wno-pragmas)
 
 set(OPTIMISE_FLAGS -Ofast)
 list(APPEND OPTIMISE_FLAGS -DNDEBUG)
@@ -66,4 +68,7 @@ target_compile_options(seahorse PUBLIC -DEIGEN_FFTW_DEFAULT)
 target_include_directories(seahorse PUBLIC ${CMAKE_SOURCE_DIR}/../)
 target_include_directories(seahorse PUBLIC ${CMAKE_SOURCE_DIR})
 target_include_directories(seahorse PUBLIC ${CMAKE_SOURCE_DIR}/../libs/eigen)
+
+# g++ specific flags to find the FFTW library
 target_include_directories(seahorse PUBLIC /usr/local/include)
+target_link_directories(seahorse PUBLIC /usr/local/lib)

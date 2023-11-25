@@ -114,7 +114,7 @@ namespace tk {
 
         static auto fix_eps = [](double val) { return (abs(val) < 1e-16) ? 0. : val; };
         return RVec((h * (h * (h * seg(d) + seg(c)) + seg(b)) + seg(y)).unaryExpr(fix_eps));
-    };
+    }
 #undef seg
 namespace internal {
 

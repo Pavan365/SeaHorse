@@ -8,6 +8,6 @@ Optimiser::Optimiser(Stopper stopper, Cost cost, SaveFn saver)
 {
     num_iterations = 0;
     steps_since_improvement = 0;
-};
+}
 
 Optimiser::~Optimiser() { }

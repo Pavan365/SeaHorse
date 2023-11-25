@@ -9,7 +9,7 @@ double StateTransfer::operator()(const RVec& u)
     eval = { .control = u, .cost = -fid, .fid = fid, .norm = stepper->state().norm() };
 
     return eval.fid;
-};
+}
 
 StateTransfer& StateTransfer::operator=(const StateTransfer& other)
 {

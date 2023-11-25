@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <random>
 
 uint64_t get_rand_seed();

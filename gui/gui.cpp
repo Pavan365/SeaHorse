@@ -22,7 +22,7 @@ struct SettingsState {
     {
         HilbertSpace hs = HilbertSpace(dim, xlim);
         const RVec x = hs.x();
-        V0 = [=](double phase) {
+        V0 = [=, this](double phase) {
             return RVec(-0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2));
         };
 
@@ -235,7 +235,7 @@ int main()
     //---------------------------------------------------------------------------------------
 
     SetTraceLogLevel(LOG_WARNING);
-    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT );//| FLAG_WINDOW_TOPMOST);
+    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT); //| FLAG_WINDOW_TOPMOST);
     InitWindow(1000, 630, "Seahorse");
     SetExitKey(KEY_NULL);
     SetTargetFPS(30);
