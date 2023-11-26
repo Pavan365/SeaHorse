@@ -28,10 +28,10 @@ FRAMEWORKS+= -framework GLUT
 FRAMEWORKS+= -framework OpenGL
 
 # Colours for logging
-RED='\033[1;91m'
-GREEN='\033[1;92m'
-ORANGE='\033[1;93m'
-WHITE='\033[1;0m'
+RED=\033[1;91m
+GREEN=\033[1;92m
+ORANGE=\033[1;93m
+WHITE=\033[1;0m
 
 
 ###### ALL PROJECTS ######
@@ -43,46 +43,46 @@ debug: $(debug_files)
 
 $(project_files) : % : projects/%.cpp seahorse/libseahorse.a
 	@mkdir -p bin
-	@echo ${GREEN}[BUILDING]${WHITE} Release version of $@...
+	@printf "${GREEN}[BUILDING]${WHITE} Release version of $@...\n"
 	@ $(CXX) $< $(STD) $(W_FLAGS) $(OPTIMISE_FLAGS) $(INCLUDE_PATHS) $(USE_FFTW) $(LIBSEAHORSE) -o ./bin/$(notdir $@)
-	@echo ${GREEN}[BUILDING] Completed $@${WHITE}
+	@printf "${GREEN}[BUILDING] Completed $@${WHITE}\n"
 
 $(debug_files) : %.debug : projects/%.cpp
 	@mkdir -p bin
-	@echo ${GREEN}[BUILDING]${WHITE} Debug version of $(basename $@)...
+	@printf "${GREEN}[BUILDING]${WHITE} Debug version of $(basename $@)...\n"
 	@ $(CXX) $< $(STD) $(W_FLAGS) $(DEBUG_FLAGS) $(INCLUDE_PATHS) $(USE_FFTW) -g -o ./bin/$(notdir $(basename $@))_debug
-	@echo ${GREEN}[BUILDING] Completed $@${WHITE}
+	@printf "${GREEN}[BUILDING] Completed $@${WHITE}\n"
 
 ####### GUI VERSION #######
 # Graphical Interface - (this is also inserted into the seahorse.app)
 gui: bin/gui
 bin/gui: gui/gui.cpp Makefile seahorse/libseahorse.a libs/raylib/src/libraylib.a
 	@mkdir -p bin
-	@echo ${GREEN}[BUILDING]${WHITE} Graphical Version...
+	@printf "${GREEN}[BUILDING]${WHITE} Graphical Version...\n"
 	@ $(CXX) $(FRAMEWORKS) $(STD) $(W_FLAGS) $(OPTIMISE_FLAGS) $(INCLUDE_PATHS) $(LIBRAYLIB) $(USE_FFTW) $(LIBSEAHORSE) gui/gui.cpp -o ./bin/gui
-	@echo ${GREEN}[BUILDING] Completed gui${WHITE}
+	@printf "${GREEN}[BUILDING] Completed gui${WHITE}\n"
 	$(RUN) ./bin/gui $(ARGS)
 
 ####### LIBRARIES #######
 # NB These must have EXACTLY the same architecture/optimisation flags set as the project builds
 # We have this checked out at a specific time so don't need to check for changes
 libs/raylib/src/libraylib.a :
-	@echo ${GREEN}[BUILDING]${WHITE} Lib Raylib...
+	@printf "${GREEN}[BUILDING]${WHITE} Lib Raylib...\n"
 	@ (cd libs/raylib/src && make PLATFORM=PLATFORM_DESKTOP RAYLIB_MODULE_RAYGUI=TRUE CUSTOM_CFLAGS="-Wno-unused-function -Wno-unused-but-set-variable")
 
 seahorse/Makefile: seahorse/CMakeLists.txt
-	@echo ${GREEN}[BUILDING]${WHITE} Initialising Lib Seahorse...
+	@printf "${GREEN}[BUILDING]${WHITE} Initialising Lib Seahorse...\n"
 	@cmake -S $(<D) -B $(@D)
 
 .PHONY: seahorse/libseahorse.a  # Always run to ensure cmake checks dependencies
 seahorse/libseahorse.a: seahorse/Makefile
-	@echo ${GREEN}[BUILDING]${WHITE} Lib Seahorse...
+	@printf "${GREEN}[BUILDING]${WHITE} Lib Seahorse...\n"
 	@$(MAKE) -C $(@D) -j 8
 
 ####### CLEAN UP #######
 .PHONY: clean
 clean:
-	@echo ${GREEN}[CLEANING]${WHITE} ...
+	@printf "${GREEN}[CLEANING]${WHITE} ...\n"
 # clear executables
 	@- rm -r bin && mkdir -p bin
 #  clear object files/libraries
