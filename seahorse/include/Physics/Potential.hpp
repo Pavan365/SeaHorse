@@ -2,7 +2,7 @@
 
 #include "include/Physics/HilbertSpace.hpp"
 #include "include/Physics/Spline.hpp"
-#include "include/Physics/Vectors.hpp"
+#include "src/Physics/Vectors.hpp"
 
 // Potentials hold some potential function V(x) defined on real space
 // They have three flavours currently - Constant, Shaken, and AmplitudeModulated

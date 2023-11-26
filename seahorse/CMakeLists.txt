@@ -2,7 +2,7 @@
 
 # This allows dependency specific rebuilds
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.11)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
@@ -14,27 +14,7 @@ set(CMAKE_CXX_COMPILER "g++")
 project(SeaHorse)
 
 # List seahorse source files
-set(SOURCE_FILES
-        include/Physics/Vectors.hpp 
-        include/Utils/Globals.hpp 
-        src/Optimisation/Basis/Basis.cpp 
-        src/Optimisation/Cost/ControlCost.cpp
-        src/Optimisation/Cost/Cost.cpp 
-        src/Optimisation/Cost/StateTransferCost.cpp 
-        src/Optimisation/Optimiser.cpp 
-        src/Optimisation/Stopper/StopComponent.cpp 
-        src/Optimisation/Stopper/Stopper.cpp 
-        src/Optimisation/dCRAB.cpp 
-        src/Optimisation/Optimiser.cpp 
-        src/Physics/HilbertSpace.cpp 
-        src/Physics/Hamiltonian.cpp 
-        src/Physics/Potential.cpp 
-        src/Physics/Spline.cpp 
-        src/Physics/SplitStepper.cpp 
-        src/Physics/Stepper.cpp 
-        src/Utils/Random.cpp 
-# Add more source files as needed
-)
+file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS src/*.cpp src/*.hpp)
 
 # Warning flags
 set(W_FLAGS -Wall)

@@ -3,7 +3,6 @@
 #include "include/Optimisation/Cost/ControlCost.hpp"
 #include "include/Optimisation/Cost/EvaluatedControl.hpp"
 #include "include/Optimisation/Cost/StateTransferCost.hpp"
-#include "include/Utils/Globals.hpp"
 
 // Evaluates a control based on the state to state transfers and control penalties
 class Cost {

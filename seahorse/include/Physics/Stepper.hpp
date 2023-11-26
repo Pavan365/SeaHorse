@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "include/Physics/Hamiltonian.hpp"
-#include "include/Utils/Globals.hpp"
 
 #include <libs/eigen/Eigen/Core>
 #include <libs/eigen/unsupported/Eigen/FFT>
@@ -34,7 +33,7 @@ public:
 
     // Evolve by a step or a number of steps
     virtual void step(double u) = 0;
-    virtual void evolve(const CVec& psi_0,const RVec& control) = 0;
+    virtual void evolve(const CVec& psi_0, const RVec& control) = 0;
 
     CVec state() const;
     double dt() const;

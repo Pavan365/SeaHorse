@@ -1,4 +1,5 @@
 #include "include/Physics/Potential.hpp"
+#include "src/Utils/Logger.hpp"
 
 RVec Potential::AmplitudeModulatedV(double amp) const { return m_V * amp; }
 // we use cubic spline interpolation which results in low error ~1e-5 for nice potentials
@@ -19,7 +20,7 @@ RVec Potential::operator()(double control) const
     case Type::CUSTOM:
         return m_Vfn(control);
     default:
-        throw std::runtime_error("Unknown potential type");
+        S_FATAL("Unknown potential type");
     };
 }
 

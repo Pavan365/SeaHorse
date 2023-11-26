@@ -63,12 +63,12 @@ bin/gui: gui/gui.cpp Makefile seahorse/libseahorse.a libs/raylib/src/libraylib.a
 	$(RUN) ./bin/gui $(ARGS)
 
 ####### LIBRARIES #######
+# NB These must have EXACTLY the same architecture/optimisation flags set as the project builds
 # We have this checked out at a specific time so don't need to check for changes
 libs/raylib/src/libraylib.a :
 	@echo ${GREEN}[BUILDING]${NC} Lib Raylib...
 	@ (cd libs/raylib/src && make PLATFORM=PLATFORM_DESKTOP RAYLIB_MODULE_RAYGUI=TRUE CUSTOM_CFLAGS="-Wno-unused-function -Wno-unused-but-set-variable")
 
-# NB This must have EXACTLY the same architecture/optimisation flags set as the main build
 seahorse/Makefile: seahorse/CMakeLists.txt
 	@echo ${GREEN}[BUILDING]${NC} Initialising Lib Seahorse...
 	@cmake -S $(<D) -B $(@D)
@@ -90,5 +90,4 @@ clean:
 # clear cmake files
 	@- cd seahorse && make clean && cmake . --fresh
 # these are incase --fresh isn't supported
-	@- rm seahorse/CMakeCache.txt
-	@- rm -rf seahorse/CMakeFiles
+	@- cd seahorse && make clean

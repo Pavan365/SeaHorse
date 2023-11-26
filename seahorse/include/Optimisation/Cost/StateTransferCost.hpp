@@ -2,7 +2,6 @@
 
 #include "include/Optimisation/Cost/EvaluatedControl.hpp"
 #include "include/Physics/Stepper.hpp"
-#include "include/Utils/Globals.hpp"
 
 template <typename T>
 concept Steppable = std::is_base_of<Stepper, T>::value;
@@ -44,6 +43,4 @@ public:
         this->psi_0 = psi_0.normalized();
         this->psi_t = psi_t.normalized();
     }
-
-
 };

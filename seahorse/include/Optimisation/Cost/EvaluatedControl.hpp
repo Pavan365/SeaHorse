@@ -1,6 +1,6 @@
 #pragma once
 
-#include "include/Utils/Globals.hpp"
+#include "src/Physics/Vectors.hpp"
 
 // This object contains the information from evolving a state with a control
 struct EvaluatedControl {

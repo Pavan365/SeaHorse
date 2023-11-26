@@ -1,4 +1,6 @@
 #include "include/Physics/Hamiltonian.hpp"
+#include "include/Utils/Timer.hpp"
+#include "src/Utils/Logger.hpp"
 
 // Actual construction from result
 Spectrum::Spectrum(const RVec& eigs, const Eigen::MatrixXd& eigvs)

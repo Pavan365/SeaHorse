@@ -1,5 +1,5 @@
 #include "include/Optimisation/Cost/StateTransferCost.hpp"
-#include "include/Physics/Vectors.hpp"
+#include "src/Physics/Vectors.hpp"
 
 double StateTransfer::operator()(const RVec& u)
 {

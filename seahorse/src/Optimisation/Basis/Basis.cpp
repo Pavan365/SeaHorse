@@ -1,5 +1,6 @@
 #include "include/Optimisation/Basis/Basis.hpp"
-#include "include/Physics/Vectors.hpp"
+#include "include/Utils/Random.hpp"
+#include "src/Physics/Vectors.hpp"
 
 Basis::Basis(std::function<RVec()> basis_maker, int num_basis_vectors)
 {

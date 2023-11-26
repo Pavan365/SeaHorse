@@ -1,5 +1,4 @@
 #include "include/Optimisation/Optimiser.hpp"
-#include "include/Optimisation/Stopper/Stopper.hpp"
 #include <string>
 
 bool StopComponent::operator()(Optimiser& opt) { return criteria(opt); }

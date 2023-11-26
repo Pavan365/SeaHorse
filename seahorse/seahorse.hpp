@@ -7,11 +7,7 @@
 
 // link library if we aren't debugging
 #ifdef DEBUG
-// Be careful - both declaration and definition to allow templated Eigen returns
-#include "include/Physics/Vectors.hpp"
-#include "include/Utils/Globals.hpp"
-#include "include/Utils/Timer.hpp"
-
+// Be careful with Vectors.hpp - both declaration and definition to allow templated Eigen returns
 #include "src/Optimisation/Basis/Basis.cpp"
 #include "src/Optimisation/Cost/ControlCost.cpp"
 #include "src/Optimisation/Cost/Cost.cpp"
@@ -26,21 +22,18 @@
 #include "src/Physics/Spline.cpp"
 #include "src/Physics/SplitStepper.cpp"
 #include "src/Physics/Stepper.cpp"
+#include "src/Physics/Vectors.hpp"
+#include "src/Utils/Globals.hpp"
+#include "src/Utils/Includer.hpp"
+#include "src/Utils/Logger.hpp"
 #include "src/Utils/Random.cpp"
+#include "src/Utils/Timer.cpp"
 #else
 
-// Be careful - both declaration and definition to allow templated Eigen returns
-#include "include/Physics/Vectors.hpp"
-#include "include/Utils/Globals.hpp"
-#include "include/Utils/Timer.hpp"
-
-// Seahorse - just headers
+// Be careful with Vectors.hpp - both declaration and definition to allow templated Eigen returns
 #include "include/Optimisation/Basis/Basis.hpp"
-#include "include/Optimisation/Cost/ControlCost.hpp"
 #include "include/Optimisation/Cost/Cost.hpp"
-#include "include/Optimisation/Cost/StateTransferCost.hpp"
 #include "include/Optimisation/Optimiser.hpp"
-#include "include/Optimisation/Stopper/StopComponent.hpp"
 #include "include/Optimisation/Stopper/Stopper.hpp"
 #include "include/Optimisation/dCRAB.hpp"
 #include "include/Physics/Hamiltonian.hpp"
@@ -50,5 +43,10 @@
 #include "include/Physics/SplitStepper.hpp"
 #include "include/Physics/Stepper.hpp"
 #include "include/Utils/Random.hpp"
+#include "include/Utils/Timer.hpp"
+#include "src/Physics/Vectors.hpp"
+#include "src/Utils/Globals.hpp"
+#include "src/Utils/Includer.hpp"
+#include "src/Utils/Logger.hpp"
 
 #endif

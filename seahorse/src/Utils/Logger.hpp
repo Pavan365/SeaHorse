@@ -1,29 +1,6 @@
 #pragma once
-#include <chrono>
-#include <complex>
-#include <functional>
 #include <iostream>
-
-#define INCBIN_PREFIX
-#include "include/Utils/incbin.hpp"
-#define INCLUDE_sourceFile INCBIN(sourceFile, __FILE__)
-
-// We have to specifically suppress these warnings because of the Eigen library
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#pragma GCC diagnostic ignored "-Wuse-after-free"
-#include <libs/eigen/Eigen/Core>
-#include <libs/eigen/Eigen/Dense>
-#include <libs/eigen/Eigen/SparseCore>
-#pragma GCC diagnostic pop
-
-using RVec = Eigen::VectorXd;
-using CVec = Eigen::VectorXcd;
-using RMat = Eigen::MatrixXd;
-using CMat = Eigen::MatrixXcd;
-
-using namespace std::complex_literals;
-#define PI M_PI
+#include <sstream>
 
 #define S_INFO(...) S_INFO_IMPL(__VA_ARGS__);
 #define S_ERROR(...) S_ERR_IMPL("\033[91m[ERROR]\033[0m", __LINE__, __FILE__, __VA_ARGS__);

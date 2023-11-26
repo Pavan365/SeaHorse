@@ -1,5 +1,6 @@
 #include "include/Optimisation/Stopper/Stopper.hpp"
 #include "include/Optimisation/Optimiser.hpp"
+#include "src/Utils/Logger.hpp"
 
 Stopper::Stopper(StopComponent sc) { components.push_back(sc); }
 

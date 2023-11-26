@@ -1,6 +1,12 @@
 #pragma once
 
-#include "include/Utils/Globals.hpp"
+#include "src/Physics/Vectors.hpp"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#pragma GCC diagnostic ignored "-Wuse-after-free"
+#include <libs/eigen/Eigen/SparseCore>
+#pragma GCC diagnostic pop
 
 class HilbertSpace {
 private:

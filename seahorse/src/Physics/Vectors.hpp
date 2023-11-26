@@ -4,7 +4,19 @@
 */
 
 #pragma once
-#include "include/Utils/Globals.hpp"
+#include "src/Utils/Globals.hpp"
+#include <complex>
+// We have to specifically suppress these warnings because of the Eigen library
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#pragma GCC diagnostic ignored "-Wuse-after-free"
+#include <libs/eigen/Eigen/Core>
+#pragma GCC diagnostic pop
+
+using RVec = Eigen::VectorXd;
+using CVec = Eigen::VectorXcd;
+using RMat = Eigen::MatrixXd;
+using CMat = Eigen::MatrixXcd;
 
 // Allow maths style notation on real/complex Vecs + Scalars
 // We promote the type to complex only where needed

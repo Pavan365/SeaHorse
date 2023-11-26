@@ -2,12 +2,12 @@
 
 #include "include/Physics/HilbertSpace.hpp"
 #include "include/Physics/Potential.hpp"
-#include "include/Utils/Globals.hpp"
-#include "include/Utils/Timer.hpp"
 
-// Spectra
-// #include <libs/spectra/include/Spectra/MatOp/SparseSymMatProd.h>
-// #include <libs/spectra/include/Spectra/SymEigsSolver.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#pragma GCC diagnostic ignored "-Wuse-after-free"
+#include <libs/eigen/Eigen/Dense>
+#pragma GCC diagnostic pop
 
 #include <libs/spectra/include/Spectra/MatOp/SparseSymShiftSolve.h>
 #include <libs/spectra/include/Spectra/SymEigsShiftSolver.h>

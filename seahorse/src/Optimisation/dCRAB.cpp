@@ -1,5 +1,5 @@
 #include "include/Optimisation/dCRAB.hpp"
-#include "include/Utils/Globals.hpp"
+#include "src/Utils/Logger.hpp"
 
 dCRAB::dCRAB(Basis& basis, Stopper& stopper, Cost& cost,
     SaveFn saver)
