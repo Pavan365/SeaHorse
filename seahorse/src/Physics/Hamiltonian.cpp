@@ -58,7 +58,7 @@ double Hamiltonian::eigenvalue(int i)
 {
     // Might as well calculate all as its fast and we then cache them
     if (i >= spectrum.numEigs) {
-        S_INFO("Calculating all eigenvalues (This may be very slow for large dimensions)");
+        S_LOG("Calculating all eigenvalues (This may be very slow for large dimensions)");
         calcEigenvalues();
     }
     return spectrum.eigenvalue(i);
@@ -133,7 +133,7 @@ void Hamiltonian::calcSpectrum(int num, double smallest_eigenvalue, bool looped)
 
     } else if (looped == false) // It failed to get any eigenvectors so try again with more lax numbers
     {
-        S_INFO("Recalculating eigenspectrum with ", 2 * nev + 5, " states instead of ", nev);
+        S_LOG("Recalculating eigenspectrum with ", 2 * nev + 5, " states instead of ", nev);
         calcSpectrum(2 * nev + 5, smallest_eigenvalue, true);
     }
     return;

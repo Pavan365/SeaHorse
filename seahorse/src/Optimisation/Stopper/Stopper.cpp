@@ -14,7 +14,7 @@ bool Stopper::operator()(Optimiser& opt)
 {
     for (auto& component : components) {
         if (component(opt)) {
-            S_INFO("STOPPING: ", component.text);
+            S_LOG("STOPPING: ", component.text);
             return true;
         }
     }

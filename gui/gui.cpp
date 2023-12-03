@@ -151,7 +151,7 @@ public:
         Basis basis = Basis::TRIG(t, 8.4, 10);
         Stopper stopper = FidStopper(0.99) + IterStopper(100) + StallStopper(20);
         Cost cost = StateTransfer(stepper, H0[0], H0[1]);
-        SaveFn saver = [](const Optimiser& opt) { S_INFO(opt.num_iterations, "\tfid= ", opt.bestControl.fid); };
+        SaveFn saver = [](const Optimiser& opt) { S_LOG(opt.num_iterations, "\tfid= ", opt.bestControl.fid); };
 
         dCRAB optimiser = dCRAB(basis, stopper, cost, saver);
         optimiser.optimise(5);

@@ -30,7 +30,7 @@ int main()
     Stopper stopper = FidStopper(0.99) + IterStopper(100) + StallStopper(20);
 
     SaveFn saver = [](const Optimiser& opt) {
-        S_INFO(opt.num_iterations, "\tfid= ", opt.bestControl.fid);
+        S_LOG(opt.num_iterations, "\tfid= ", opt.bestControl.fid);
     };
 
     dCRAB optimiser = dCRAB(basis, stopper, cost, saver);

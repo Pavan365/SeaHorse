@@ -57,7 +57,7 @@ void dCRAB::step()
 
     // reflection is better than second worst point but worse than best point
     if ((simplex.front() < reflected) && (reflected < simplex[simplex.size() - 2])) {
-        // S_INFO("Reflection replaces worst point");
+        // S_LOG("Reflection replaces worst point");
         simplex.pop_back();
         simplex.push_back(reflected);
         updateBest(eval);
@@ -77,11 +77,11 @@ void dCRAB::step()
         simplex.pop_back();
         // expansion is better than reflection
         if (expanded < reflected) {
-            // S_INFO("Expansion replaces worst point");
+            // S_LOG("Expansion replaces worst point");
             simplex.push_back(expanded);
             updateBest(eval);
         } else {
-            // S_INFO("Reflection replaces worst point after checking expansion");
+            // S_LOG("Reflection replaces worst point after checking expansion");
             simplex.push_back(reflected);
             updateBest(reflectedEC);
         }
@@ -97,7 +97,7 @@ void dCRAB::step()
 
         // contraction is better than reflection
         if (contracted < reflected) {
-            // S_INFO("Contraction around reflection replaces worst point");
+            // S_LOG("Contraction around reflection replaces worst point");
             simplex.pop_back();
             simplex.push_back(contracted);
             updateBest(eval);
@@ -111,7 +111,7 @@ void dCRAB::step()
 
         // contraction is better than worst
         if (contracted < simplex.back()) {
-            // S_INFO("Contraction around worst replaces worst point");
+            // S_LOG("Contraction around worst replaces worst point");
             simplex.pop_back();
             simplex.push_back(contracted);
             updateBest(eval);
@@ -127,14 +127,14 @@ void dCRAB::step()
         simplex[i] = { new_pt, eval.cost };
         updateBest(eval);
     }
-    // S_INFO("Shrink");
+    // S_LOG("Shrink");
     return;
 }
 
 void dCRAB::optimise() { optimise(1); }
 void dCRAB::optimise(int dressings)
 {
-    S_INFO("dCRAB optimise using a basis size of ", basis->size(), " divided into ", dressings, " chunks");
+    S_LOG("dCRAB optimise using a basis size of ", basis->size(), " divided into ", dressings, " chunks");
 
     // Early checking of stopper and saving incase we initialise with a good control
     while (true) {
@@ -158,7 +158,7 @@ void dCRAB::optimise(int dressings)
 
         step();
     }
-    S_INFO("dCRAB finished with {", num_iterations, " iters, ", fpp, " fpps, ",
+    S_LOG("dCRAB finished with {", num_iterations, " iters, ", fpp, " fpps, ",
         bestControl.fid, " fid, ", bestControl.norm, " norm, ", bestControl.cost, " cost}");
 }
 

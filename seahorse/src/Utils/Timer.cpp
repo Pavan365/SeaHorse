@@ -6,7 +6,7 @@ Timer::Timer()
 void Timer::Start() { start = std::chrono::system_clock::now(); };
 void Timer::Stop(std::string msg)
 {
-    S_INFO(Elapsed(), " seconds, ", msg);
+    S_LOG(Elapsed(), " seconds, ", msg);
 };
 double Timer::Elapsed()
 {
