@@ -3,8 +3,12 @@
 #include "src/Physics/Vectors.hpp"
 
 #pragma GCC diagnostic push
+#ifdef __GNUC__
+#ifndef __clang__
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #pragma GCC diagnostic ignored "-Wuse-after-free"
+#endif
+#endif
 #include <libs/eigen/Eigen/SparseCore>
 #pragma GCC diagnostic pop
 

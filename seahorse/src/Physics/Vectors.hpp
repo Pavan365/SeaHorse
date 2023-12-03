@@ -8,8 +8,12 @@
 #include <complex>
 // We have to specifically suppress these warnings because of the Eigen library
 #pragma GCC diagnostic push
+#ifdef __GNUC__
+#ifndef __clang__
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #pragma GCC diagnostic ignored "-Wuse-after-free"
+#endif
+#endif
 #include <libs/eigen/Eigen/Core>
 #pragma GCC diagnostic pop
 
