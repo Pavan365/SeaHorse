@@ -87,8 +87,9 @@ void Hamiltonian::calcEigenvalues()
 void Hamiltonian::calcSpectrum(int num, double smallest_eigenvalue, bool looped)
 {
     // 'Spectra' implementation finds first 'num' eigenvalues/eigenvectors of a SPARSE SYMMETRIC matrix
-    auto nev = std::min(std::max(num, 4), (int)H.cols() - 1);
-    auto ncv = std::min(4 * nev, (int)H.cols());
+    auto nev = std::min(std::max(num, 5), (int)H.cols() - 1);
+
+    auto ncv = std::min(std::max(nev * 2 + 1, 20), (int)H.cols());
 
     // Construct matrix operation object using the wrapper class SparseSymShiftSolve
     Spectra::SparseSymShiftSolve<double> op(H);
