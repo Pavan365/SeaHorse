@@ -1,9 +1,9 @@
 STD = -std=c++20 -DEIGEN_FFTW_DEFAULT
-# CXX = /usr/local/bin/g++-13
-CXX = g++
+CXX = /usr/local/bin/g++-13
+# CXX = g++
 
 W_FLAGS = -Wall -Wextra
-W_FLAGS+= -Wno-unknown-warning-option
+# W_FLAGS+= -Wno-unknown-warning-option
 W_FLAGS+= -Wno-pragmas
 
 OPTIMISE_FLAGS = -Ofast -ffp-contract=fast -DNDEBUG
@@ -13,6 +13,8 @@ LIBSEAHORSE = -L./seahorse/ -lseahorse
 DEBUG_FLAGS = -O0 -DDEBUG
 
 USE_FFTW = -lfftw3 -lfftw3f -lfftw3l -L/usr/local/lib
+USE_MKL = -DEIGEN_USE_MKL_ALL -DMKL_ILP64 -fopenmp -m64 -L/usr/local/lib
+USE_MKL += -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -ldl
 
 INCLUDE_PATHS = -I./
 INCLUDE_PATHS += -I./seahorse
@@ -44,13 +46,13 @@ debug: $(debug_files)
 $(project_files) : % : projects/%.cpp seahorse/libseahorse.a
 	@mkdir -p bin
 	@printf "${GREEN}[BUILDING]${WHITE} Release version of $@...\n"
-	@ $(CXX) $< $(STD) $(W_FLAGS) $(OPTIMISE_FLAGS) $(INCLUDE_PATHS) $(USE_FFTW) $(LIBSEAHORSE) -o ./bin/$(notdir $@)
+	@ $(CXX) $< $(STD) $(INCLUDE_PATHS) $(W_FLAGS) $(OPTIMISE_FLAGS) $(USE_MKL) $(USE_FFTW)  $(LIBSEAHORSE) -o ./bin/$(notdir $@)
 	@printf "${GREEN}[BUILDING] Completed $@${WHITE}\n"
 
 $(debug_files) : %.debug : projects/%.cpp
 	@mkdir -p bin
 	@printf "${GREEN}[BUILDING]${WHITE} Debug version of $(basename $@)...\n"
-	@ $(CXX) $< $(STD) $(W_FLAGS) $(DEBUG_FLAGS) $(INCLUDE_PATHS) $(USE_FFTW) -g -o ./bin/$(notdir $(basename $@))_debug
+	@ $(CXX) $< $(STD) $(W_FLAGS) $(DEBUG_FLAGS) $(USE_MKL) $(USE_FFTW) $(INCLUDE_PATHS) -g -o ./bin/$(notdir $(basename $@))_debug
 	@printf "${GREEN}[BUILDING] Completed $@${WHITE}\n"
 
 ####### GUI VERSION #######
@@ -59,7 +61,7 @@ gui: bin/gui
 bin/gui: gui/gui.cpp Makefile seahorse/libseahorse.a libs/raylib/src/libraylib.a
 	@mkdir -p bin
 	@printf "${GREEN}[BUILDING]${WHITE} Graphical Version...\n"
-	@ $(CXX) $(FRAMEWORKS) $(STD) $(W_FLAGS) $(OPTIMISE_FLAGS) $(INCLUDE_PATHS) $(LIBRAYLIB) $(USE_FFTW) $(LIBSEAHORSE) gui/gui.cpp -o ./bin/gui
+	@ $(CXX) $(FRAMEWORKS) $(STD) $(W_FLAGS) $(OPTIMISE_FLAGS) $(USE_MKL) $(USE_FFTW) $(INCLUDE_PATHS) $(LIBRAYLIB) $(LIBSEAHORSE) gui/gui.cpp -o ./bin/gui
 	@printf "${GREEN}[BUILDING] Completed gui${WHITE}\n"
 	$(RUN) ./bin/gui $(ARGS)
 
@@ -77,7 +79,7 @@ seahorse/Makefile: seahorse/CMakeLists.txt
 .PHONY: seahorse/libseahorse.a  # Always run to ensure cmake checks dependencies
 seahorse/libseahorse.a: seahorse/Makefile
 	@printf "${GREEN}[BUILDING]${WHITE} Lib Seahorse...\n"
-	@$(MAKE) -C $(@D) -j 8
+	@$(MAKE) -C $(@D)
 
 ####### CLEAN UP #######
 .PHONY: clean

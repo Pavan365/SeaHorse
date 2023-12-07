@@ -7,8 +7,12 @@
 #ifndef __clang__
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #pragma GCC diagnostic ignored "-Wuse-after-free"
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 #endif
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-value"
+#include <libs/eigen/Eigen/Dense>
 #include <libs/eigen/Eigen/SparseCore>
 #pragma GCC diagnostic pop
 

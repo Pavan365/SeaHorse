@@ -3,16 +3,6 @@
 #include "include/Physics/HilbertSpace.hpp"
 #include "include/Physics/Potential.hpp"
 
-#pragma GCC diagnostic push
-#ifdef __GNUC__
-#ifndef __clang__
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#pragma GCC diagnostic ignored "-Wuse-after-free"
-#endif
-#endif
-#include <libs/eigen/Eigen/Dense>
-#pragma GCC diagnostic pop
-
 #include <libs/spectra/include/Spectra/MatOp/SparseSymShiftSolve.h>
 #include <libs/spectra/include/Spectra/SymEigsShiftSolver.h>
 

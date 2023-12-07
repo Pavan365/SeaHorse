@@ -14,6 +14,8 @@
 #pragma GCC diagnostic ignored "-Wuse-after-free"
 #endif
 #endif
+#pragma GCC diagnostic ignored "-Wunused-value"
+#pragma GCC diagnostic ignored "-Wenum-compare"
 #include <libs/eigen/Eigen/Core>
 #pragma GCC diagnostic pop
 
