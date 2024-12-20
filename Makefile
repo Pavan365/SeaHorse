@@ -56,7 +56,7 @@ $(debug_files) : %.debug : projects/%.cpp
 	@printf "${GREEN}[BUILDING] Completed $@${WHITE}\n"
 
 ####### GUI VERSION #######
-# Graphical Interface - (this is also inserted into the seahorse.app)
+# Graphical Interface
 gui: bin/gui
 bin/gui: gui/gui.cpp Makefile seahorse/libseahorse.a libs/raylib/src/libraylib.a
 	@mkdir -p bin

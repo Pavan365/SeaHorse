@@ -53,10 +53,18 @@ inline auto abs2(const CVec& v) { return v.array().abs2(); }
 
 template <typename Derived, typename Derived2>
 inline auto
-fidelity(const Eigen::MatrixBase<Derived>& psi_f,
-    const Eigen::MatrixBase<Derived2>& psi_t)
+fidelity(const Eigen::MatrixBase<Derived>& psi_1,
+    const Eigen::MatrixBase<Derived2>& psi_2)
 {
-    return std::norm(psi_f.dot(psi_t));
+    return std::norm(psi_1.conjugate().dot(psi_2));
+}
+
+template <typename Derived, typename Derived2>
+inline auto
+overlap(const Eigen::MatrixBase<Derived>& psi_1,
+    const Eigen::MatrixBase<Derived2>& psi_2)
+{
+    return psi_1.conjugate().dot(psi_2);
 }
 
 // These only really make sense on the Reals
@@ -66,7 +74,7 @@ inline auto box(const RVec& x, double min, double max)
 {
     return (x.array().cwiseLess(max).cast<double>() + x.array().cwiseGreater(min).cast<double>()) - 1;
 }
-inline auto planck_taper(const RVec& v, double taper_ratio = 1.0 / 8.0)
+inline auto planck_taper(const RVec& v, double taper_ratio = 1.0 / 6.0)
 {
     auto N = v.size();
     RVec ret = RVec::Ones(N);

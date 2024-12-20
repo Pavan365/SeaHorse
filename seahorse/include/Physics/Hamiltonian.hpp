@@ -36,17 +36,20 @@ public:
     // Constructor
     Hamiltonian(HilbertSpace& hs, const RVec& V);
 
-    // Operator for getting/calculating eigenvectors
+    // Operator for getting a single eigenvector
     RVec operator[](int i);
 
-    // Calculation of only the eigenvalues
+    // Returns a single eigenvalue
     double eigenvalue(int i);
 
-    // Actually calculate Eigenvalues efficiently
+    // Returns the first N eigenvalues
+    RVec eigenvalues(int N);
+
+    // Calculate all Eigenvalues - this may be faster or slower than calcSpectrum depending on dimensionality
     void calcEigenvalues();
 
     // Calculating the full spectrum of the matrix up to state `num`
-    void calcSpectrum(int num, double smallest_eigenvalue = 0, bool looped = false);
+    void calcSpectrum(int num, double smallest_eigenvalue = 0.0, bool looped = false);
 };
 
 // Class describing a controllable Hamiltonian which can be called to generate a specific Hamiltonian matrix

@@ -3,6 +3,7 @@
 #include "include/Optimisation/Cost/ControlCost.hpp"
 #include "include/Optimisation/Cost/EvaluatedControl.hpp"
 #include "include/Optimisation/Cost/StateTransferCost.hpp"
+#include "src/Utils/Logger.hpp"
 
 // Evaluates a control based on the state to state transfers and control penalties
 class Cost {
@@ -13,8 +14,19 @@ public:
     Cost(StateTransfer transfer) { this->transfers.push_back(transfer); };
     Cost(ControlCost cc) { this->components.push_back(cc); };
 
-    void addTransferCost(StateTransfer st)
+    void inline addTransferCost(StateTransfer st)
     {
+        // First we need to ensure the initial state is orthogonal to any we
+        // already use
+        for (auto& transfer : transfers) {
+            if (fidelity(transfer.psi_0, st.psi_0) > 1e-4) {
+                S_FATAL("Initial states for StateTransfers are not orthogonal. This indicates a non-unitary transfer operator. (fid = ", fidelity(transfer.psi_0, st.psi_0));
+            }
+            if (fidelity(transfer.psi_t, st.psi_t) > 1e-4) {
+                S_FATAL("Final states for StateTransfers are not orthogonal. This indicates a non-unitary transfer operator. (fid = ", fidelity(transfer.psi_t, st.psi_t));
+            }
+        }
+
         transfers.push_back(st);
     }
 

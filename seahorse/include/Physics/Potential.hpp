@@ -2,6 +2,7 @@
 
 #include "include/Physics/HilbertSpace.hpp"
 #include "include/Physics/Spline.hpp"
+#include "src/Json/nlohmann_json.hpp"
 #include "src/Physics/Vectors.hpp"
 
 // Potentials hold some potential function V(x) defined on real space
@@ -23,11 +24,17 @@ public:
         CUSTOM
     };
 
+    friend void to_json(nlohmann ::json& j,
+        const Potential& pot)
+    {
+        j = pot.m_V;
+    }
+
 private:
-    RVec m_x;
     RVec m_V;
     Type m_type;
     // Shaken potentials use splines to interpolate
+    RVec m_x;
     tk::spline spline;
 
     // Slow fallback to this for custom potentials
@@ -52,7 +59,7 @@ public:
         : m_type(Type::CUSTOM)
         , m_Vfn(V) {};
     // Specific control methods
-    Potential(HilbertSpace& hs, const RVec& V, Type type);
+    Potential(const RVec& x, const RVec& V, Type type);
 };
 
 // helpers to avoid specifying the type

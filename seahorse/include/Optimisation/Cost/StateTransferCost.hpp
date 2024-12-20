@@ -18,6 +18,8 @@ private:
     CVec psi_0;
     CVec psi_t;
 
+    std::complex<double> pseudofid = 0.0;
+
 public:
     // NB: This is not a true fidelity as we just average the fidelities of each
     // transfer. But it's good enough for our purposes.

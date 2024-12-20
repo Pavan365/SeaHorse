@@ -18,7 +18,7 @@ private:
 public:
     friend class dCRAB;
 
-    EvaluatedControl bestControl;
+    EvaluatedControl bestControl {.control=RVec::Zero(0), .cost=std::numeric_limits<double>::infinity(), .fid=0.0, .norm=0.0};
     // Num iterations
     int num_iterations;
     // steps since improvement
@@ -39,5 +39,5 @@ public:
     virtual void step() = 0;
 
 private:
-    virtual void updateBest(EvaluatedControl&) = 0;
+    void updateBest(EvaluatedControl&);
 };

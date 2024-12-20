@@ -9,6 +9,11 @@ Spectrum::Spectrum(const RVec& eigs, const Eigen::MatrixXd& eigvs)
     , eigenvectors(eigvs)
     , numEigvs(eigvs.cols())
 {
+    // normalize eigenvectors
+    for (int i = 0; i < numEigvs; i++) {
+        S_LOG("Eigenvector ", i, " norm: ", eigenvectors.col(i).norm());
+        eigenvectors.col(i) /= eigenvectors.col(i).norm();
+    }
 }
 
 // Return the eigenvalue (internal calls from Hamiltonian only)
@@ -53,6 +58,21 @@ RVec Hamiltonian::operator[](int i)
     return spectrum.eigenvector(i);
 }
 
+// getting a number of eigenvalues
+RVec Hamiltonian::eigenvalues(int N)
+{
+    if (N >= spectrum.numEigvs) // We have't already calculated enough states
+    {
+        // NB: i+1 as we zero index so the 0th is calcSpectrum(1)
+        if (spectrum.numEigvs > 0) {
+            calcSpectrum(N + 1, spectrum.eigenvalue(0));
+        } else {
+            calcSpectrum(N + 1);
+        }
+    }
+    return spectrum.eigenvalues.head(N);
+}
+
 // Calculation of only the eigenvalues WARNING THIS CAN BE VERY COSTLY FOR LARGE DIMENSION
 double Hamiltonian::eigenvalue(int i)
 {
@@ -94,8 +114,8 @@ void Hamiltonian::calcSpectrum(int num, double smallest_eigenvalue, bool looped)
     // Construct matrix operation object using the wrapper class SparseSymShiftSolve
     Spectra::SparseSymShiftSolve<double> op(H);
     // estimate the smallest eigenvalue by the smallest potential value (As a free particle has positive-definite H)
-    if (smallest_eigenvalue == 0) {
-        smallest_eigenvalue = V.minCoeff();
+    if (smallest_eigenvalue == 0.0) {
+        smallest_eigenvalue = std::min(0.0, V.minCoeff());
     }
     Spectra::SymEigsShiftSolver<Spectra::SparseSymShiftSolve<double>> eigs(op, nev, ncv, smallest_eigenvalue);
     eigs.init();

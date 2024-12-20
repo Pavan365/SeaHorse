@@ -8,6 +8,7 @@
 // link library if we aren't debugging
 #ifdef DEBUG
 // Be careful with Vectors.hpp - both declaration and definition to allow templated Eigen returns
+#include "src/Json/json.hpp"
 #include "src/Optimisation/Basis/Basis.cpp"
 #include "src/Optimisation/Cost/ControlCost.cpp"
 #include "src/Optimisation/Cost/Cost.cpp"
@@ -22,6 +23,7 @@
 #include "src/Physics/Spline.cpp"
 #include "src/Physics/SplitStepper.cpp"
 #include "src/Physics/Stepper.cpp"
+#include "src/Physics/Time.hpp"
 #include "src/Physics/Vectors.hpp"
 #include "src/Utils/Globals.hpp"
 #include "src/Utils/Includer.hpp"
@@ -44,9 +46,10 @@
 #include "include/Physics/Stepper.hpp"
 #include "include/Utils/Random.hpp"
 #include "include/Utils/Timer.hpp"
+#include "src/Json/json.hpp"
+#include "src/Physics/Time.hpp"
 #include "src/Physics/Vectors.hpp"
 #include "src/Utils/Globals.hpp"
 #include "src/Utils/Includer.hpp"
 #include "src/Utils/Logger.hpp"
-
 #endif

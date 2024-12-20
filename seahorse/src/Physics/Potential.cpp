@@ -55,9 +55,9 @@ void Potential::initSpline()
 
 // copy constructor
 Potential::Potential(const Potential& other)
-    : m_x(other.m_x)
-    , m_V(other.m_V)
+    : m_V(other.m_V)
     , m_type(other.m_type)
+    , m_x(other.m_x)
     , m_Vfn(other.m_Vfn)
 {
     initSpline();
@@ -65,32 +65,32 @@ Potential::Potential(const Potential& other)
 
 // move constructor
 Potential::Potential(Potential&& other)
-    : m_x(other.m_x)
-    , m_V(other.m_V)
+    : m_V(other.m_V)
     , m_type(other.m_type)
+    , m_x(other.m_x)
     , m_Vfn(other.m_Vfn)
 {
     initSpline();
 }
 
 // Specific control methods
-Potential::Potential(HilbertSpace& hs, const RVec& V, Type type)
-    : m_x(hs.x())
-    , m_V(V)
+Potential::Potential(const RVec& x, const RVec& V, Type type)
+    : m_V(V)
     , m_type(type)
+    , m_x(x)
 {
     initSpline();
 }
 
 Potential ConstantPotential(HilbertSpace& hs, const RVec& V)
 {
-    return Potential(hs, V, Potential::Type::CONSTANT);
+    return Potential(hs.x(), V, Potential::Type::CONSTANT);
 }
 Potential AmplitudePotential(HilbertSpace& hs, const RVec& V)
 {
-    return Potential(hs, V, Potential::Type::AMPLITUDE);
+    return Potential(hs.x(), V, Potential::Type::AMPLITUDE);
 }
 Potential ShakenPotential(HilbertSpace& hs, const RVec& V)
 {
-    return Potential(hs, V, Potential::Type::SHAKEN);
+    return Potential(hs.x(), V, Potential::Type::SHAKEN);
 }

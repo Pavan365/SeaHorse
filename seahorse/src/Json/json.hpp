@@ -1,4 +1,4 @@
-#include "src/DataContainer/json.hpp"
+#include "src/Json/nlohmann_json.hpp"
 #include "src/Physics/Vectors.hpp"
 #include "src/Utils/Logger.hpp"
 
@@ -6,11 +6,15 @@ using json = nlohmann::json;
 
 void save(const std::string& filename, const json& j)
 {
-    std::ofstream o(filename);
+    std::string tmp_filename = filename + ".tmp";
+    // check if we can open the file
+    std::ofstream o(tmp_filename); // Write to a temporary file
     if (!o.is_open()) {
         S_FATAL("Could not open file: ", filename);
     }
     o << j.dump(4) << std::endl;
+    o.close();
+    std::rename(tmp_filename.c_str(), filename.c_str());
 }
 
 json load(const std::string& filename)
@@ -21,6 +25,7 @@ json load(const std::string& filename)
     }
     json j;
     i >> j;
+    i.close();
     return j;
 }
 

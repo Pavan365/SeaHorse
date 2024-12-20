@@ -12,7 +12,7 @@ public:
     ControlCost(std::function<double(const RVec&)> cost)
         : cost(std::move(cost)) {};
 
-    inline double operator()(const RVec& u) const { return weight * cost(u); };
+    inline double operator()(const RVec& u) const { return this->weight * this->cost(u); };
 
 private:
     std::function<double(const RVec&)> cost;

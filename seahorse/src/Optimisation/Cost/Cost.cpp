@@ -5,15 +5,16 @@ EvaluatedControl Cost::operator()(const RVec& u)
     EvaluatedControl eval = { .control = u, .cost = 0, .fid = 0, .norm = 1 };
 
     // Evaluate the cost of each transfer
+    std::complex<double> fid = 0.0;
     for (auto& transfer : transfers) {
         transfer(u);
-        eval.cost += transfer.eval.cost;
-        eval.fid += transfer.eval.fid;
+        fid += transfer.pseudofid;
         eval.norm = std::min(eval.norm, transfer.eval.norm);
         fpp++;
     }
-    // pseudo-fidelity by normalizing the fidelity by the number of transfers
-    eval.fid /= transfers.size();
+    // fidelity is 1/d^2 |sum(pseudofids)|^2; with pseudofids the piecewise product of matrix elements of the transfer and goal operator
+    eval.fid = std::norm(fid) / transfers.size() / transfers.size();
+    eval.cost = -eval.fid;
 
     // Any control costs we want to add
     for (auto& component : components) {

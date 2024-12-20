@@ -3,6 +3,8 @@
 #include <chrono>
 #include <random>
 
+#define SET_RAND_SEED srand(get_rand_seed());
+
 uint64_t get_rand_seed();
 
 struct randGen {

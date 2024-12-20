@@ -4,6 +4,8 @@
 double StateTransfer::operator()(const RVec& u)
 {
     stepper->evolve(psi_0, u);
+    this->pseudofid = overlap(psi_t, stepper->state());
+
     double fid = fidelity(psi_t, stepper->state());
     // We want to maximise the fidelity, so the cost is the negative
     eval = { .control = u, .cost = -fid, .fid = fid, .norm = stepper->state().norm() };

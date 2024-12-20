@@ -18,6 +18,17 @@ Quantum Simulation and Optimal Control.
 	Used for the graphical interface.
 	This is only included for gui.cpp not main.cpp
 
+## Required libraries
+
+<b>These should live on your path somewhere. </b>
+* <ins>MKL:</ins>
+  
+	Used for even faster maths.
+
+* <ins>FFTW:</ins>
+  
+	Used for fast fourier transform.
+
 ## Installing
 On first run you need to initialise and update the submodules:
 

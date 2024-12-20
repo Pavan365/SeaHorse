@@ -23,7 +23,7 @@ struct SettingsState {
         HilbertSpace hs = HilbertSpace(dim, xlim);
         const RVec x = hs.x();
         V0 = [=, this](double phase) {
-            return RVec(-0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2));
+            return RVec(depth -0.5 * depth * (cos(2 * k * (x - phase)) + 1) * box(x - phase, -PI / k / 2, PI / k / 2));
         };
 
         HamiltonianFn H(hs, V0);
@@ -41,13 +41,13 @@ struct SettingsState {
 
         HamiltonianFn H(hs, V0);
         Hamiltonian H0 = H(0);
-        H0.calcSpectrum(15, -depth);
+        H0.calcSpectrum(15, 0);
 
         plot_spectrum.clearLines();
         plot_spectrum.plot(x, H0.V, "V (0)", BLACK, 1, 4, 0);
         auto scaling = ((H0.eigenvalue(1) - H0.eigenvalue(0)) / 2) / (H0.spectrum.eigenvectors.cwiseAbs().maxCoeff());
         for (auto i = 0; i < H0.spectrum.numEigvs; i++) {
-            if (H0.eigenvalue(i) > 0) {
+            if (H0.eigenvalue(i) > depth) {
                 break;
             } // only plot bound states
             plot_spectrum.plot(x, H0[i] * scaling + H0.eigenvalue(i), TextFormat("H [%d]", i));
@@ -148,12 +148,12 @@ public:
                                               : H0[0] + H0[1];
 
         SplitStepper stepper = SplitStepper(state->dt, H);
-        Basis basis = Basis::TRIG(t, 8.4, 10);
+        Basis basis = Basis::TRIG(t, 5.0, Basis::AmpFreqPhase,20)
+                          .setMaxAmp(PI / state->k / 2);
         Stopper stopper = FidStopper(0.99) + IterStopper(100) + StallStopper(20);
         Cost cost = StateTransfer(stepper, H0[0], H0[1]);
-        SaveFn saver = [](const Optimiser& opt) { S_LOG(opt.num_iterations, "\tfid= ", opt.bestControl.fid); };
 
-        dCRAB optimiser = dCRAB(basis, stopper, cost, saver);
+        dCRAB optimiser = dCRAB(basis, stopper, cost);
         optimiser.optimise(5);
 
         controls_vec.push_back(optimiser.bestControl.control);
