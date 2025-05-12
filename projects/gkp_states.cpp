@@ -27,7 +27,7 @@ int main()
 
     Cost cost = StateTransfer(stepper, H0[0], H0[1]) + StateTransfer(stepper, H0[1], H0[0]) + 1e3 * makeBoundaries(-1, 1) + 1e-6 * makeRegularisation();
 
-    Basis basis = Basis::TRIG(t, 8.5, 10);
+    Basis basis = Basis::TRIG(t, 8.5, Basis::AmpFreq);
 
     Stopper stopper = FidStopper(0.99) + IterStopper(100) + StallStopper(20);
 

@@ -60,7 +60,7 @@ Basis Basis::RESONANT(const RVec& t, RVec freqs, int num_basis_vectors)
 {
     // A function that returns a BasisFn with a resonant frequency to a state transfer
     return Basis([t, freqs]() {
-      // choose a state transfer at random (E1-E2 = hbar w_12) so we then use that as the angular frequency cos(wt+phase)
+      // choose a state transfer at random (E_i-E_j = hbar w_ij) so we then use that as the angular frequency cos(wt+phase)
                   double freq = abs(freqs[(int)(rands()*freqs.size())]-freqs[rands()*freqs.size()]);
                   return [t, freq](std::vector<double> coeffs) {
                       return planck_taper(coeffs[0] * cos(freq * t.array() + 2 * PI * coeffs[1]));

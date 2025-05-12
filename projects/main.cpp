@@ -13,7 +13,7 @@ int main()
     const auto k = sqrt(2);
     const auto xlim = PI / k / 2 * 4;
     constexpr double dt = 0.001;
-    constexpr int numSteps = 10e3;
+    constexpr int numSteps = 20e3;
     // constexpr double totalTime = dt * numSteps;
 
     auto hs = HilbertSpace(dim, xlim);
@@ -48,7 +48,7 @@ int main()
     double bestFid = 0;
     while (bestFid < 0.99) {
         // 4.2 freq is about 0.1MHz at Rb or using harmonic oscillator approx we have sqrt(2*depth)*k as our limit
-        Basis basis = Basis::TRIG(t, 4.2 * 5, Basis::AmpFreqPhase, 20)
+        Basis basis = Basis::TRIG(t, 4.2 * 5, Basis::Amplitude, 10)
                           // Basis basis = Basis::RESONANT(t, H0.eigenvalues(5), 10)
                           .setMaxAmp(PI / k / 2);
 

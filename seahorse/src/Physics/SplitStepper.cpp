@@ -73,5 +73,5 @@ void SplitStepper::evolve(const CVec& psi_0, const RVec& control)
                    .cwiseProduct(m_T_exp_2.array());
     m_fft.inv(m_psi_f, m_mombuf);
 
-    // S_INFO("Stepped ", control.size(), " times in ", timer.Elapsed(), " seconds");
+    //S_LOG("Stepped ", control.size(), " times in ", timer.Elapsed(), " seconds");
 }
