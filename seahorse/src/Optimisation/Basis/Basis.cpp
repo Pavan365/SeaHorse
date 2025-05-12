@@ -80,6 +80,10 @@ RVec Basis::control(RVec coeffs)
         control += m_basis[i](coeffs_i);
     }
     // scale the control by the amplitude
+    double controlMax = control.cwiseAbs().maxCoeff();
+    if (controlMax == 0.0) {
+        return 0.0 * control;
+    }
     double scale = m_maxAmp * coeffs[0] / control.cwiseAbs().maxCoeff();
     return scale * control;
 }
