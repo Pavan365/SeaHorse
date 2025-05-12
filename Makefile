@@ -40,7 +40,7 @@ all : $(project_files)
 $(project_files) : % : projects/%.cpp
 	@mkdir -p bin
 	@printf "${GREEN}[BUILDING]${WHITE} $@...\n"
-	@ $(CXX) $< $(STD) $(INCLUDE_PATHS) $(W_FLAGS) $(FLAGS) $(USE_MKL) -o ./bin/$(notdir $@)
+	$(CXX) $< $(STD) $(INCLUDE_PATHS) $(W_FLAGS) $(FLAGS) $(USE_MKL) -o ./bin/$(notdir $@)
 	@printf "${GREEN}[BUILDING] Completed $@${WHITE}\n"
 
 ####### GUI VERSION #######
@@ -55,7 +55,7 @@ bin/gui: gui/gui.cpp Makefile libs/raylib/src/libraylib.a
 # We have this checked out at a specific time so don't need to check for changes
 libs/raylib/src/libraylib.a :
 	@printf "${GREEN}[BUILDING]${WHITE} Lib Raylib...\n"
-	@ (cd libs/raylib/src && make PLATFORM=PLATFORM_DESKTOP RAYLIB_MODULE_RAYGUI=TRUE CUSTOM_CFLAGS="-Wno-unused-function -Wno-unused-but-set-variable")
+	@ (cd libs/raylib/src && $(MAKE) PLATFORM=PLATFORM_DESKTOP RAYLIB_MODULE_RAYGUI=TRUE CUSTOM_CFLAGS="-Wno-unused-function -Wno-unused-but-set-variable")
 
 ####### CLEAN UP #######
 .PHONY: clean

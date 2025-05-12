@@ -707,7 +707,7 @@ public:
                     data_bounds.y, maxWidth + padding * 4, totalHeight + padding * 2
                 };
                 DrawRectangleRounded(legend_rect, 0.1, 10, WHITE);
-                DrawRectangleRoundedLines(legend_rect, 0.1, 10, 2, DARKGRAY);
+                DrawRectangleRoundedLines(legend_rect, 0.1, 10, DARKGRAY);
                 float heightSoFar = 0;
                 for (size_t i = 0; i < names.size(); i++) {
                     auto loc = Vector2 { legend_rect.x + 3 * padding,
