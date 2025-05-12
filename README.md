@@ -6,7 +6,7 @@ Quantum Simulation and Optimal Control.
 <b>These are included as submodules. </b>
 * <ins>Eigen:</ins>
   
-	Used for fast linear algebra calculations.
+	Used for fast linear algebra calculations. The MKL backend allows it to go as fast as possible :)
 
 * <ins>Spectra:</ins>
 
@@ -16,41 +16,32 @@ Quantum Simulation and Optimal Control.
 * <ins>Raylib + Raygui:</ins>
 
 	Used for the graphical interface.
-	This is only included for gui.cpp not main.cpp
+	This is only included for the gui target
 
 ## Required libraries
 
 <b>These should live on your path somewhere. </b>
 * <ins>MKL:</ins>
   
-	Used for even faster maths.
-
-* <ins>FFTW:</ins>
-  
-	Used for fast fourier transform.
+	Used for fast maths. We could support not needing this in the future?
 
 ## Installing
 On first run you need to initialise and update the submodules:
 
-`git submodule init`
-
-`git submodule update`
+`git submodule update --init --recursive`
 
 ## Building
-We use the make build system (with a little bit of cmake behind the scenes). This is designed to separate the build of user programs and the seahorse library, which massively decreases compile times.
+We use the make build system - ideally this should separate the seahorse parts and user parts to reduce compile times but that needs some thoughful design
 
 Any *.cpp in the projects file can be built using:
 
-`make * -j8` 
+`make * -j8`
 
-which links the static library. For debugging 
+or all at once with
 
-`make *.debug -j8`
+`make all -j8`
 
-Which will include seahorse to enhance debugging.
-
-Both will create an executable in /bin.
-
+which will create an executable in /bin.
 
 
 ## On the BC4 Cluster
