@@ -7,8 +7,6 @@
 #include <libs/eigen/Eigen/Core>
 #include <libs/eigen/unsupported/Eigen/FFT>
 
-#include <fftw3.h>
-
 // General class to evolve wavefunctions: either by a single `step(u)` or multiple `evolve(control)`.
 class Stepper {
 

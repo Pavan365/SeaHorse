@@ -2,6 +2,7 @@
 #include "src/Utils/TypeName.hpp"
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
@@ -52,9 +53,6 @@ template <typename... Args>
 void S_LOG_IMPL(Args&&... args)
 {
     std::ostringstream stream;
-#ifndef NDEBUG
-    std::cout << "\033[1;93m[DEBUG MODE]\033[1;0m ";
-#endif
     std::cout << "\033[1;92m[INFO] \033[1;0m";
     (std::cout << ... << std::forward<Args>(args));
     std::cout << std::endl;

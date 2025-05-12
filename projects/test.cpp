@@ -1,4 +1,3 @@
-#define DEBUG
 // #include "seahorse.hpp"
 #include "src/Json/json.hpp"
 #include "src/Utils/Logger.hpp"
